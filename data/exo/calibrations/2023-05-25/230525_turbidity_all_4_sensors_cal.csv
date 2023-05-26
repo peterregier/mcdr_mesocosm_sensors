@@ -1,0 +1,133 @@
+KorEXO Calibration File Export
+
+Last Calibration Time=,1/23/2022 4:26:59 PM
+Calibration Start Time=,5/25/2023 12:41:33 PM
+Calibration End Time=,5/25/2023 12:57:05 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104984
+Instrument Serial Number=,17H104984
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Turbidity (FNU)
+Sensor Type=,Turbidity
+Sensor Serial Number=,17H103503
+Sensor Firmware Version=,3.0.4
+User ID=,<Unknown>
+
+[Cal Point 1]
+Standard=,0.50 FNU
+Pre Calibration Value=,1.05 FNU
+Post Calibration Value=,0.53 FNU
+Raw Value=,0.00 FNU
+Temperature=,22.504 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,124.00 FNU
+Pre Calibration Value=,123.18 FNU
+Post Calibration Value=,124.00 FNU
+Raw Value=,0.00 FNU
+Temperature=,21.505 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,6/29/2022 4:55:14 PM
+Calibration Start Time=,5/25/2023 12:41:33 PM
+Calibration End Time=,5/25/2023 12:57:05 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104984
+Instrument Serial Number=,17H104984
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Turbidity (FNU)
+Sensor Type=,Turbidity
+Sensor Serial Number=,17H103502
+Sensor Firmware Version=,3.0.4
+User ID=,<Unknown>
+
+[Cal Point 1]
+Standard=,0.50 FNU
+Pre Calibration Value=,1.34 FNU
+Post Calibration Value=,0.54 FNU
+Raw Value=,0.00 FNU
+Temperature=,22.504 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,124.00 FNU
+Pre Calibration Value=,121.84 FNU
+Post Calibration Value=,124.00 FNU
+Raw Value=,0.00 FNU
+Temperature=,21.584 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,<Unknown>
+Calibration Start Time=,5/25/2023 12:41:33 PM
+Calibration End Time=,5/25/2023 12:57:05 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104984
+Instrument Serial Number=,17H104984
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Turbidity (FNU)
+Sensor Type=,Turbidity
+Sensor Serial Number=,21J105268
+Sensor Firmware Version=,3.0.4
+User ID=,<Unknown>
+
+[Cal Point 1]
+Standard=,0.50 FNU
+Pre Calibration Value=,0.55 FNU
+Post Calibration Value=,0.49 FNU
+Raw Value=,0.00 FNU
+Temperature=,22.528 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,124.00 FNU
+Pre Calibration Value=,121.45 FNU
+Post Calibration Value=,124.00 FNU
+Raw Value=,0.00 FNU
+Temperature=,21.639 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,1/24/2022 4:21:59 PM
+Calibration Start Time=,5/25/2023 12:41:33 PM
+Calibration End Time=,5/25/2023 12:57:05 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104984
+Instrument Serial Number=,17H104984
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Turbidity (FNU)
+Sensor Type=,Turbidity
+Sensor Serial Number=,17H103504
+Sensor Firmware Version=,3.0.4
+User ID=,<Unknown>
+
+[Cal Point 1]
+Standard=,0.50 FNU
+Pre Calibration Value=,1.39 FNU
+Post Calibration Value=,0.56 FNU
+Raw Value=,0.00 FNU
+Temperature=,22.558 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,124.00 FNU
+Pre Calibration Value=,122.02 FNU
+Post Calibration Value=,124.00 FNU
+Raw Value=,0.00 FNU
+Temperature=,21.679 °C
+Stability Achieved=,Yes
+
+----------

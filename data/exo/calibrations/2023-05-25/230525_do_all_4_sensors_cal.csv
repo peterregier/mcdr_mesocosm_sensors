@@ -1,0 +1,121 @@
+KorEXO Calibration File Export
+
+Last Calibration Time=,1/23/2022 4:08:26 PM
+Calibration Start Time=,5/25/2023 1:07:34 PM
+Calibration End Time=,5/25/2023 1:16:11 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,DO (% Sat)
+Sensor Type=,DO
+Sensor Serial Number=,17H104633
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+DO Cap Serial Number=,17G103680
+DO Cap Replacement Date=,8/30/2017 8:36:50 AM
+DO Gain=,1.08
+DO mg/L=,8.65 mg/L
+
+[Cal Point 1]
+Standard=,100.0 % Sat
+Pre Calibration Value=,98.0 % Sat
+Post Calibration Value=,99.9 % Sat
+Raw Value=,0.0 % Sat
+Temperature=,22.379 °C
+Stability Achieved=,Yes
+Barometer=,760.0 mmHg
+
+----------
+
+Last Calibration Time=,1/20/2023 4:12:09 PM
+Calibration Start Time=,5/25/2023 1:07:34 PM
+Calibration End Time=,5/25/2023 1:16:11 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,DO (% Sat)
+Sensor Type=,DO
+Sensor Serial Number=,17H103855
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+DO Cap Serial Number=,21B100803
+DO Cap Replacement Date=,6/15/2021 8:40:08 PM
+DO Gain=,1.02
+DO mg/L=,8.66 mg/L
+
+[Cal Point 1]
+Standard=,100.0 % Sat
+Pre Calibration Value=,101.1 % Sat
+Post Calibration Value=,99.9 % Sat
+Raw Value=,0.0 % Sat
+Temperature=,22.459 °C
+Stability Achieved=,Yes
+Barometer=,760.0 mmHg
+
+----------
+
+Last Calibration Time=,2/23/2023 2:09:38 PM
+Calibration Start Time=,5/25/2023 1:07:34 PM
+Calibration End Time=,5/25/2023 1:16:11 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,DO (% Sat)
+Sensor Type=,DO
+Sensor Serial Number=,17H103857
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+DO Cap Serial Number=,21B100802
+DO Cap Replacement Date=,9/21/2021 12:47:45 PM
+DO Gain=,1.06
+DO mg/L=,8.66 mg/L
+
+[Cal Point 1]
+Standard=,100.0 % Sat
+Pre Calibration Value=,101.9 % Sat
+Post Calibration Value=,100.0 % Sat
+Raw Value=,0.0 % Sat
+Temperature=,22.530 °C
+Stability Achieved=,Yes
+Barometer=,760.0 mmHg
+
+----------
+
+Last Calibration Time=,3/24/2023 7:06:12 PM
+Calibration Start Time=,5/25/2023 1:07:34 PM
+Calibration End Time=,5/25/2023 1:16:11 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,DO (% Sat)
+Sensor Type=,DO
+Sensor Serial Number=,21K102182
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+DO Cap Serial Number=,21J102108
+DO Cap Replacement Date=,11/2/2021 12:50:57 PM
+DO Gain=,1.08
+DO mg/L=,8.65 mg/L
+
+[Cal Point 1]
+Standard=,100.0 % Sat
+Pre Calibration Value=,96.6 % Sat
+Post Calibration Value=,100.0 % Sat
+Raw Value=,0.0 % Sat
+Temperature=,22.568 °C
+Stability Achieved=,Yes
+Barometer=,760.0 mmHg
+
+----------

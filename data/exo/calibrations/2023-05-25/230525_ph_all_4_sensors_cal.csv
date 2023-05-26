@@ -1,0 +1,185 @@
+KorEXO Calibration File Export
+
+Last Calibration Time=,1/23/2022 4:19:45 PM
+Calibration Start Time=,5/25/2023 4:14:06 PM
+Calibration End Time=,5/25/2023 4:34:48 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH
+Sensor Serial Number=,18M100054
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 4.00-7.00 Delta Slope=,173.7 mV
+pH Range 4.00-7.00 mV per Decade=,57.89
+pH Range 7.00-10.00 Delta Slope=,177.7 mV
+pH Range 7.00-10.00 mV per Decade=,59.24
+
+[Cal Point 1]
+Standard=,4.00 pH
+Pre Calibration Value=,4.19 pH
+Post Calibration Value=,4.00 pH
+Raw Value=,162.7 mV
+Temperature=,21.076 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,7.00 pH
+Pre Calibration Value=,7.27 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-11.0 mV
+Temperature=,21.062 °C
+Stability Achieved=,Yes
+
+[Cal Point 3]
+Standard=,10.00 pH
+Pre Calibration Value=,10.41 pH
+Post Calibration Value=,10.01 pH
+Raw Value=,-188.7 mV
+Temperature=,20.914 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,3/24/2023 7:32:27 PM
+Calibration Start Time=,5/25/2023 4:14:06 PM
+Calibration End Time=,5/25/2023 4:34:48 PM
+Calibration Status=,Completed
+QC Score=,Warning
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH/ORP
+Sensor Serial Number=,20G104160
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 4.00-7.00 Delta Slope=,162.1 mV
+pH Range 4.00-7.00 mV per Decade=,54.02
+pH Range 7.00-10.00 Delta Slope=,176.7 mV
+pH Range 7.00-10.00 mV per Decade=,58.89
+
+[Cal Point 1]
+Standard=,4.00 pH
+Pre Calibration Value=,3.96 pH
+Post Calibration Value=,4.00 pH
+Raw Value=,127.1 mV
+Temperature=,21.096 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,7.00 pH
+Pre Calibration Value=,6.94 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-35.0 mV
+Temperature=,21.097 °C
+Stability Achieved=,Yes
+
+[Cal Point 3]
+Standard=,10.00 pH
+Pre Calibration Value=,10.20 pH
+Post Calibration Value=,10.04 pH
+Raw Value=,-211.7 mV
+Temperature=,20.968 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,2/23/2023 2:30:30 PM
+Calibration Start Time=,5/25/2023 4:14:06 PM
+Calibration End Time=,5/25/2023 4:34:48 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH/ORP
+Sensor Serial Number=,20G104157
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 4.00-7.00 Delta Slope=,172.9 mV
+pH Range 4.00-7.00 mV per Decade=,57.64
+pH Range 7.00-10.00 Delta Slope=,180.8 mV
+pH Range 7.00-10.00 mV per Decade=,60.28
+
+[Cal Point 1]
+Standard=,4.00 pH
+Pre Calibration Value=,3.94 pH
+Post Calibration Value=,4.00 pH
+Raw Value=,148.2 mV
+Temperature=,21.138 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,7.00 pH
+Pre Calibration Value=,6.80 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-24.7 mV
+Temperature=,21.130 °C
+Stability Achieved=,Yes
+
+[Cal Point 3]
+Standard=,10.00 pH
+Pre Calibration Value=,9.80 pH
+Post Calibration Value=,10.02 pH
+Raw Value=,-205.6 mV
+Temperature=,21.006 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,<Unknown>
+Calibration Start Time=,5/25/2023 4:14:06 PM
+Calibration End Time=,5/25/2023 4:34:48 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH/ORP
+Sensor Serial Number=,20G104159
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 4.00-7.00 Delta Slope=,173.9 mV
+pH Range 4.00-7.00 mV per Decade=,57.97
+pH Range 7.00-10.00 Delta Slope=,176.7 mV
+pH Range 7.00-10.00 mV per Decade=,58.89
+
+[Cal Point 1]
+Standard=,4.00 pH
+Pre Calibration Value=,4.19 pH
+Post Calibration Value=,4.00 pH
+Raw Value=,163.8 mV
+Temperature=,21.168 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,7.00 pH
+Pre Calibration Value=,7.17 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-10.1 mV
+Temperature=,21.156 °C
+Stability Achieved=,Yes
+
+[Cal Point 3]
+Standard=,10.00 pH
+Pre Calibration Value=,10.21 pH
+Post Calibration Value=,10.01 pH
+Raw Value=,-186.8 mV
+Temperature=,21.002 °C
+Stability Achieved=,Yes
+
+----------

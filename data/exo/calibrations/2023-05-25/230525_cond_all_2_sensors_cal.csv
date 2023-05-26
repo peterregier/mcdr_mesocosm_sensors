@@ -1,0 +1,53 @@
+KorEXO Calibration File Export
+
+Last Calibration Time=,5/24/2023 9:35:07 AM
+Calibration Start Time=,5/25/2023 4:57:42 PM
+Calibration End Time=,5/25/2023 4:59:11 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104984
+Instrument Serial Number=,17H104984
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Sp Cond (µS/cm)
+Sensor Type=,Wiped Conductivity And Temperature
+Sensor Serial Number=,19F100031
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+Cell Constant=,0.44
+
+[Cal Point 1]
+Standard=,50000.0 µS/cm
+Pre Calibration Value=,49982.2 µS/cm
+Post Calibration Value=,49998.2 µS/cm
+Raw Value=,0.0 µS/cm
+Temperature=,21.030 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,1/23/2022 4:12:56 PM
+Calibration Start Time=,5/25/2023 5:03:25 PM
+Calibration End Time=,5/25/2023 5:04:21 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 21B103964
+Instrument Serial Number=,21B103964
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Sp Cond (µS/cm)
+Sensor Type=,Wiped Conductivity And Temperature
+Sensor Serial Number=,21B105939
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+Cell Constant=,0.44
+
+[Cal Point 1]
+Standard=,50000.0 µS/cm
+Pre Calibration Value=,53343.1 µS/cm
+Post Calibration Value=,49999.5 µS/cm
+Raw Value=,0.0 µS/cm
+Temperature=,21.163 °C
+Stability Achieved=,Yes
+
+----------

@@ -1,0 +1,45 @@
+'CR6 Series
+'Created by Short Cut (4.4)
+
+'Declare Variables and Units
+Public BattV
+Public PTemp_C
+Public csense179
+Public csense180
+
+Units BattV=Volts
+Units PTemp_C=Deg C
+Units csense179=mV
+Units csense180=mV
+
+'Define Data Tables
+DataTable(Table1,True,-1)
+	DataInterval(0,60,Min,10)
+	Average(1,BattV,FP2,False)
+	Average(1,PTemp_C,FP2,False)
+	Average(1,csense179,FP2,False)
+	Average(1,csense180,FP2,False)
+EndTable
+
+DataTable(Table2,True,-1)
+	DataInterval(0,1440,Min,10)
+	Minimum(1,BattV,FP2,False,False)
+EndTable
+
+'Main Program
+BeginProg
+	'Main Scan
+	Scan(5,Sec,1,0)
+		'Default CR6 Datalogger Battery Voltage measurement 'BattV'
+		Battery(BattV)
+		'Default CR6 Datalogger Wiring Panel Temperature measurement 'PTemp_C'
+		PanelTemp(PTemp_C,60)
+		'Generic Single-Ended Voltage measurements 'csense179'
+		VoltSE(csense179,1,mV5000,U1,True,500,60,1,0)
+		'Generic Single-Ended Voltage measurements 'csense180'
+		VoltSE(csense180,1,mV5000,U3,True,500,60,1,0)
+		'Call Data Tables and Store Data
+		CallTable Table1
+		CallTable Table2
+	NextScan
+EndProg
