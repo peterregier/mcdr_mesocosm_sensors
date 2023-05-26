@@ -1,0 +1,41 @@
+'CR6 Datalogger
+
+Public SEvoltSensor1
+Public SEvoltSensor1Avg
+Public SEvoltSensor2
+Public SEvoltSensor2Avg
+Public SensorPowered As Boolean
+
+DataTable (Table1,True,-1 )
+  Sample (1,SEvoltSensor1Avg,FP2)
+  Sample (1,SEvoltSensor2Avg,FP2)
+EndTable
+
+'Main Program
+BeginProg
+  Scan (1,Sec,0,0)
+
+    If IfTime (0,5,Min)Then '0 minutes into a 5 minute interval
+      SW12 (SW12_1,1 )'power to sensors switched on
+      SensorPowered = True
+    EndIf
+
+    If SensorPowered = True Then 'With sensors powered, measure sensors
+      VoltSe (SEvoltSensor1,1,mV5000,U1,True,0,60,1.0,0)
+      VoltSe (SEvoltSensor2,1,mV5000,U2,True,0,60,1.0,0)
+    EndIf
+
+    If SensorPowered = True AND TimeIsBetween (50,60,60,sec)'last 10 seconds
+      AvgRun (SEvoltSensor1Avg,1,SEvoltSensor1,10)
+      AvgRun (SEvoltSensor2Avg,1,SEvoltSensor2,10)
+    EndIf
+
+    If IfTime (1,5,Min)Then ' 1 minute into a 5 minute interval
+      CallTable Table1 'CallTable inside If/EndIf bloci to limit when called
+      SensorPowered = False
+      SW12 (SW12_1,0 )'power to sensors switched off
+    EndIf
+
+  NextScan
+EndProg
+
