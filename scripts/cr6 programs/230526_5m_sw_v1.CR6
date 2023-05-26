@@ -17,7 +17,7 @@ DataTable(Table1,True,-1)
 	DataInterval(0,5,Min,10)
 	Sample(1,BattV,FP2)
 	Sample(1,PTemp_C,FP2)
-	Sample(1,SEVolt1,FP2)
+	Average(1,SEVolt1,FP2,False)
 	Average(1,SEVolt3,FP2,False)
 EndTable
 
@@ -30,7 +30,7 @@ BeginProg
 		Delay(0,240,Sec)  'First, wait 240s (4m) with sensors off
 		SW12(SW12_1,1) 'After first delay, power both SW12 ports (turn on sensors)
 		SW12(SW12_2,1)
-		Delay(0,50,Sec) 'Now, wait 50 seconds before taking readings
+		Delay(0,55,Sec) 'Now, wait 50 seconds before taking readings
 		
 		'Default CR6 Datalogger Battery Voltage measurement 'BattV'
 		Battery(BattV)
@@ -41,10 +41,15 @@ BeginProg
 		'Generic Single-Ended Voltage measurements 'SEVolt3' (assigned to cable #2)
 		VoltSe(SEVolt3,1,mV5000,U3,True,500,60,1,0)
 		
+    'Adding a final delay after readings are taken for the last 5s
+    Delay(0,5,Sec) 'Now, wait 50 seconds before taking readings
+
+		'Call Data Tables and Store Data
+		CallTable Table1
+		
     'Turn power to sensors off till next reading
 		SW12(SW12_1,0)
 		SW12(SW12_2,0)
-		'Call Data Tables and Store Data
-		CallTable Table1
+		
 	NextScan
 EndProg
