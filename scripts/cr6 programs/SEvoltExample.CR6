@@ -1,4 +1,5 @@
 'CR6 Datalogger
+'Courtesy of Bruce Smith, Campbell Scientific
 
 Public SEvoltSensor1
 Public SEvoltSensor1Avg
