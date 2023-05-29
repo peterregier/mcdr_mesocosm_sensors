@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ExoSoftware Version="1">
+  <DeploymentConfiguration>
+    <Deployment>
+      <Name>230523_5min_test</Name>
+      <CreationDate>638206352650873678</CreationDate>
+    </Deployment>
+    <BasicSettings>
+      <FileNamePrefix></FileNamePrefix>
+      <UserName>default user</UserName>
+      <Description></Description>
+      <SiteName>&lt;site&gt;</SiteName>
+      <LoggingInterval>00:05:00</LoggingInterval>
+    </BasicSettings>
+    <AdaptiveLoggingSettings>
+      <LoggingEnabled>false</LoggingEnabled>
+      <LoggingInterval>00:00:01</LoggingInterval>
+      <LoggingDuration>00:00:00</LoggingDuration>
+      <LoggingParameter1>60</LoggingParameter1>
+      <LoggingMode1>0</LoggingMode1>
+      <LoggingThreshold1>0</LoggingThreshold1>
+      <LoggingParameter2>60</LoggingParameter2>
+      <LoggingMode2>0</LoggingMode2>
+      <LoggingThreshold2>0</LoggingThreshold2>
+    </AdaptiveLoggingSettings>
+    <LoggingSettings>
+      <AveragingMode>0</AveragingMode>
+      <AveragingDuration>00:00:00</AveragingDuration>
+      <BurstDuration>00:00:00</BurstDuration>
+      <LoggingMode>2</LoggingMode>
+      <Samples>12</Samples>
+    </LoggingSettings>
+    <Sdi12Settings>
+      <Address>0</Address>
+    </Sdi12Settings>
+  </DeploymentConfiguration>
+</ExoSoftware>

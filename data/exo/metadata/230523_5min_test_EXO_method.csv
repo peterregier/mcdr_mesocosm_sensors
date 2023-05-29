@@ -1,0 +1,36 @@
+﻿KorEXO Deployment Settings File Export
+
+Deployment Name:,230523_5min_test
+Deployment Settings Creation Date:,5/25/2023 6:14:25 PM
+Exported Date:,5/27/2023 1:10:26 PM
+
+
+BASIC SETTINGS
+File Name Prefix:,
+Site Name:,<site>
+Logging Interval:,00:05:00 (HH:MM:SS)
+User Name:,default user
+Description:,
+------------------------
+ADAPTIVE LOGGING SETTINGS
+Adaptive Logging State:,DISABLED
+Adaptive Logging Interval:,00:00:01 (HH:MM:SS)
+Adaptive Logging Duration:,00:00:00 (HH:MM:SS)
+Adaptive Logging Parameter 1:,Temp (°C)
+Parameter 1 Adaptive Logging Mode:,Off
+Parameter 1 Adaptive Logging Threshold:,0
+Adaptive Logging Parameter 2:,Temp (°C)
+Parameter 2 Adaptive Logging Mode:,Off
+Parameter 2 Adaptive Logging Threshold:,0
+------------------------
+LOGGING SETTINGS
+Averaging Mode:,Default
+Burst Duration:,00:00:00
+Averaging Duration:,00:00:00
+Logging Mode:,RealTime
+Samples Per Wipe:,12
+------------------------
+SDI-12 SETTINGS
+Address:,0
+Parameter List:,
+------------------------
