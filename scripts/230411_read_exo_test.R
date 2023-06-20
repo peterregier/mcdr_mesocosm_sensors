@@ -10,6 +10,9 @@
 # ############## #
 # ############## #
 
+## To DO
+### 
+
 
 # 1. Setup ---------------------------------------------------------------------
 
@@ -28,7 +31,7 @@ theme_set(theme_bw())
 raw_filepath = "data/test/exo"
 
 ## Load constants
-source("scripts/constants.R")
+source("scripts/0_constants.R")
 
 
 # 2. EXO functions -------------------------------------------------------------
