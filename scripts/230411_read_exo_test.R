@@ -5,7 +5,7 @@
 ## NOTE: this script is built on test data from FY22 deployments and may need to
 ## be updated if data storage or export formats change
 ##
-## pjr, 2023-04-11
+## pjr, 2023-04-11 (updated 6/20/23)
 ##
 # ############## #
 # ############## #
@@ -111,5 +111,7 @@ toc()
 
 
 write_csv(df_bin, "data/test/exo_all_data_raw.csv")
+
+
 
 
