@@ -5,10 +5,13 @@
 ## NOTE: this script is built on test data from FY22 deployments and may need to
 ## be updated if data storage or export formats change
 ##
-## pjr, 2023-04-11
+## pjr, 2023-04-11 (updated 6/20/23)
 ##
 # ############## #
 # ############## #
+
+## To DO
+### 
 
 
 # 1. Setup ---------------------------------------------------------------------
@@ -28,7 +31,7 @@ theme_set(theme_bw())
 raw_filepath = "data/test/exo"
 
 ## Load constants
-source("scripts/constants.R")
+source("scripts/0_constants.R")
 
 
 # 2. EXO functions -------------------------------------------------------------
@@ -108,5 +111,7 @@ toc()
 
 
 write_csv(df_bin, "data/test/exo_all_data_raw.csv")
+
+
 
 
