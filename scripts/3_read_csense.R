@@ -37,7 +37,28 @@ co2_sd_threshold = 50 #if the sd > threshold, cull
 mean_ <- function(var){mean({{var}}, na.rm = T)}
 sd_ <- function(var){sd({{var}}, na.rm = T)}
 
-df_raw <- read_delim(list.files(raw_filepath, full.names = T), skip = 1) %>% 
+files <- list.files(raw_filepath, pattern = "CR6Series_Table1", full.names = T)
+
+read_cr6 <- function(file){
+  df_raw <- read_delim(file, skip = 1) %>% 
+    slice(3:n()) %>% 
+    mutate(SEVolt_1 = as.numeric(SEVolt_1), 
+           SEVolt_2 = as.numeric(SEVolt_2)) %>% 
+    mutate(datetime_1min = force_tz(parsedate::parse_date(TIMESTAMP), tzone = common_tz)) %>% 
+    mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
+    select(datetime, contains("SEVolt_"))  %>% 
+    group_by(datetime) %>% 
+    summarize(co2_ppm_bare = mean_(SEVolt_1), 
+              co2_ppm_eelgrass = mean_(SEVolt_2),
+              sd_ppm_bare = sd_(SEVolt_1), 
+              sd_ppm_eelgrass = sd_(SEVolt_2)) 
+}
+
+df_raw <- files %>% 
+  map(read_cr6) %>% 
+  bind_rows()
+
+df_raw <- read_delim(list.files(raw_filepath, pattern = "CR6Series_Table1", full.names = T), skip = 1) %>% 
   slice(3:n()) %>% 
     mutate(SEVolt_1 = as.numeric(SEVolt_1), 
          SEVolt_2 = as.numeric(SEVolt_2)) %>% 
