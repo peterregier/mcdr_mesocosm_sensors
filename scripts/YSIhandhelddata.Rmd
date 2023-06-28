@@ -5,19 +5,12 @@ date: "2023-06-15"
 output: html_document
 ---
 
-
-Use the 'here' function to map to directory 
-
-``` {r}
-here::i_am("YSIdata/YSIdata.Rmd") 
-```
-
-
 Load packages
 
 ``` {r}
 require(pacman)
 p_load(tidyverse,
+       janitor,
        dplyr,
        ggpubr, 
        ggplot2,
@@ -28,21 +21,28 @@ p_load(tidyverse,
 ```
 
 
+Use the 'here' function to map to directory 
+
+``` {r}
+here::i_am("YSIhandhelddata.Rmd") 
+```
+
+
 Import Excel file. Clean up data. 
 
 ``` {r}
-ysidata <- read_excel(here("YSIdata/data/Daily_TankSpotChecks_2023.xlsx"))
+
+ysidata <- read_excel(here("data/Daily_TankSpotChecks_2023.xlsx"))
 
 ysidata <- ysidata[2:82,] %>% 
-  ###mutate (across(where(is_character), as.numeric))
-  mutate_if (is_character, as.numeric) %>%
-  rename("SampleID" = "Sample ID", "T_Surface" = "T (C)", "T_Deep" = "...4", "Salinity_Surface" = "Salinity (ppt)", "Salinity_Deep" = "...6", "pH_Surface" = "pH (NBS)", "pH_Deep" = "...8", "DO_Surface" = "DO (mg/L)", "DO_Deep" = "...10") %>%
+  rename("sample_id" = "Sample ID", "t_surface" = "T (C)", "t_deep" = "...4", "salinity_surface" = "Salinity (ppt)", "salinity_deep" = "...6", "pH_surface" = "pH (NBS)", "pH_deep" = "...8", "do_surface" = "DO (mg/L)", "do_deep" = "...10") %>%
   select(-Notes,-Initials,-`Calibration (y/n)`, - `Time Start(PSD)`, -`Time Stop(PSD)`, -`Flow Rate (L/min)`) 
 
-### not working!!
-###ysidata <- mutate_at(c('T_Surface', 'T_Deep', 'Salinity_Surface', 'Salinity_Deep', ###'pH_Surface', 'pH_Deep', 'DO_Surface','DO_Deep'), as.numeric)
+ysidata <- ysidata %>%
+  mutate_at(c('t_surface', 't_deep', 'salinity_surface', 'salinity_deep', 'pH_surface', 'pH_deep', 'do_surface','do_deep'), as.numeric) %>%
+  mutate(density = case_when(sample_id == 1 ~ 'Medium', sample_id == 2 ~ 'High', sample_id == 3 ~ 'High', sample_id == 4 ~ 'Low', sample_id == 5 ~ 'Zero', sample_id == 6 ~ 'Low', sample_id == 7 ~ 'Zero', sample_id == 8 ~ 'Medium', sample_id == "Inlet" ~ "Inlet")) 
 
-###ysidata 
+ysidata
 
 ```
 
@@ -50,141 +50,137 @@ ysidata <- ysidata[2:82,] %>%
 Plot the relationship between Surface pH and Surface Temperature in all the tanks. 
 
 ``` {r}
-ggplot(na.omit(ysidata), aes(T_Surface, pH_Surface)) + 
+ggplot(na.omit(ysidata), aes(t_surface, pH_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  facet_wrap(~SampleID) + 
-  labs(title = "Surface pH versus Temperature in Mesocosm Tanks", x = "Surface Temperature (C)", y = "Surface pH (NBS)") +
+  facet_wrap(~density) + 
+  ###facet_wrap(~sample_id) + 
+  labs(title = "Surface pH versus Temperature in Mesocosm Tanks of Different Density Eelgrass", x = "Surface Temperature (C)", y = "Surface pH (NBS)") +
   theme_set(theme_bw())
-
 ```
-Overall Surface Temp versus pH graph 
+
+Overall Surface Temp versus pH graph
+
 ```{r}
-ggplot(na.omit(ysidata), aes(T_Surface, pH_Surface)) + 
+ggplot(na.omit(ysidata), aes(t_surface, pH_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
   labs(title = "Surface pH versus Temperature", x = "Surface Temperature (C)", y = "Surface pH (NBS)") +
   theme_set(theme_bw())
-
 ```
 
+Salinity and DO
 
-
-Salinity and DO 
 ```{r}
-ggplot(na.omit(ysidata), aes(Salinity_Surface, DO_Surface)) + 
+ggplot(na.omit(ysidata), aes(salinity_surface, do_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  facet_wrap(~SampleID) + 
+  facet_wrap(~density) + 
   labs(title = "Surface Salinity versus Dissolved Oxygen in Mesocosm Tanks", x = "Surface Salinity (ppt)", y = "Surface Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
-
 ```
-Salinity and DO 
+
+Salinity and DO
+
 ```{r}
-ggplot(na.omit(ysidata), aes(Salinity_Surface, DO_Surface)) + 
+ggplot(na.omit(ysidata), aes(salinity_surface, do_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
   labs(title = "Surface Salinity versus Dissolved Oxygen", x = "Surface Salinity (ppt)", y = "Surface Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
-
 ```
 
-
 Temperature and Salinity 
+
 ```{r}
-ggplot(na.omit(ysidata), aes(T_Surface, Salinity_Surface)) + 
+ggplot(na.omit(ysidata), aes(t_surface, salinity_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  facet_wrap(~SampleID) + 
+  facet_wrap(~density) + 
   labs(title = "Surface Salinity versus Temperature in Mesocosm Tanks", x = "Surface Temperature (C)", y = "Surface Salinity (ppt)") +
   theme_set(theme_bw())
-
 ```
 
 Overall Surface Salinity versus Temperature 
 
 ```{r}
-ggplot(na.omit(ysidata), aes(T_Surface, Salinity_Surface)) + 
+ggplot(na.omit(ysidata), aes(t_surface, salinity_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
   labs(title = "Surface Salinity versus Temperature", x = "Surface Temperature (C)", y = "Surface Salinity (ppt)") +
   theme_set(theme_bw())
-
 ```
 
 DO and pH by tank
+
 ```{r}
-ggplot(na.omit(ysidata), aes(pH_Surface, DO_Surface)) + 
+ggplot(na.omit(ysidata), aes(pH_surface, do_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  facet_wrap(~SampleID) + 
+  facet_wrap(~density) + 
   labs(title = "Surface Dissolved Oxygen versus pH in Mesocosm Tanks", x = "Surface pH (NBS)", y = "Surface Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
-
-
 ```
 
-
 DO and pH 
+
 ```{r}
-ggplot(na.omit(ysidata), aes(pH_Surface, DO_Surface)) + 
+ggplot(na.omit(ysidata), aes(pH_surface, do_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
   labs(title = "Surface Dissolved Oxygen versus pH", x = "Surface pH (NBS)", y = "Surface Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
-
-
 ```
-
 
 DO and Temperature 
 
 ```{r}
-ggplot(na.omit(ysidata), aes(T_Surface, DO_Surface)) + 
+ggplot(na.omit(ysidata), aes(t_surface, do_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  facet_wrap(~SampleID) + 
+  facet_wrap(~density) + 
   labs(title = "Surface Dissolved Oxygen versus Temperature in Mesocosm Tanks", x = "Surface Temperature (C)", y = "Surface Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
-
 ```
+
 DO and Temperature 
 
 ```{r}
-ggplot(na.omit(ysidata), aes(T_Surface, DO_Surface)) + 
+ggplot(na.omit(ysidata), aes(t_surface, do_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
   labs(title = "Surface Dissolved Oxygen versus Temperature", x = "Surface Temperature (C)", y = "Surface Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
-
 ```
 
 Salinity and pH
 
 ```{r}
-ggplot(na.omit(ysidata), aes(pH_Surface, Salinity_Surface)) + 
+ggplot(na.omit(ysidata), aes(pH_surface, salinity_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  facet_wrap(~SampleID) + 
+  facet_wrap(~density) + 
   labs(title = "Surface Salinity versus pH in Mesocosm Tanks", x = "Surface pH (NBS)", y = "Surface Salinity (ppt)") +
   theme_set(theme_bw())
-
 ```
+
 Salinity and pH
 
 ```{r}
-ggplot(na.omit(ysidata), aes(pH_Surface, Salinity_Surface)) + 
+ggplot(na.omit(ysidata), aes(pH_surface, salinity_surface)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
   labs(title = "Surface Salinity versus pH", x = "Surface pH (NBS)", y = "Surface Salinity (ppt)") +
   theme_set(theme_bw())
 ```
+
+
 CORRELATION MATRICES!!!
+
 ```{r}
 ### FOR SURFACE
 surface_cor <- ysidata %>% 
-  select(T_Surface, Salinity_Surface, pH_Surface, DO_Surface) %>%
+  select(t_surface, salinity_surface, pH_surface, do_surface) %>%
   select(where(is.numeric)) %>% ## only select numeric variables
   drop_na()
 
@@ -193,52 +189,141 @@ cor(surface_cor) %>%
 
 ### FOR DEEP
 deep_cor <- ysidata %>% 
-  select(T_Deep, Salinity_Deep, pH_Deep, DO_Deep) %>%
+  select(t_deep, salinity_deep, pH_deep, do_deep) %>%
   select(where(is.numeric)) %>% ## only select numeric variables
   drop_na()
 
 cor(deep_cor) %>% 
   corrplot()
-
-
-
 ```
 
 CORRELATION STATS OF INTEREST 
+
 ```{r}
-summary(lm(T_Surface~pH_Surface, data = ysidata))
+summary(lm(t_surface~pH_surface, data = ysidata))
 
-summary(lm(DO_Surface~pH_Surface, data = ysidata))
+summary(lm(do_surface~pH_surface, data = ysidata))
 
-summary(lm(T_Surface~DO_Surface, data = ysidata))
+summary(lm(t_surface~do_surface, data = ysidata))
 ```
 
 Box plots to compare mean values between different groups within the data set. 
 Comparing pH between different tanks - high density versus  medium, low, and no density eel grass. 
 
 ```{r}
+compare_density <- list(c("Medium", "Low"), c("Low", "High"), 
+                        c("High", "Medium"), c("High", "Zero"), 
+                        c("Zero", "Medium"), c("Zero","Low"))
 
-compare_sampleid <- list( c("3", "5"), c("3", "4"), 
-                         c("3", "8"))
-
-ggplot(na.omit(ysidata), aes(x=SampleID, y=T_Surface, fill=SampleID)) +
+ggplot(na.omit(ysidata), aes(x=density, y=t_surface, fill = density)) +
+  labs(title = "Surface Temperature in Mesocosm Tanks", x = "Eelgrass Density", y = "Surface Temperature (C)") + 
   geom_boxplot() + ## add boxplots
-  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_sampleid)
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
 
-
+### Figure out how to reorder densities  
 ```
 
-
-Try plotting Deep and Surface data sets on same graph for pH versus Temp
+pH Boxplots 
 
 ```{r}
+ggplot(na.omit(ysidata), aes(x=density, y=pH_surface, fill = density)) +
+  labs(title = "Surface pH in Mesocosm Tanks", x = "Eelgrass Density", y = "Surface pH (NBS)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+```
 
-ggplot(na.omit(ysidata), aes() + 
-  geom_point() + 
-  geom_smooth(method = "lm", color = "red") + 
-  labs(title = "Surface pH versus Temperature at Two Depths in the Mesocosm Tanks", x = "Temperature (C)", y = "pH (NBS)") +
-  theme_set(theme_bw())
+Dissolved Oxygen Surface boxplot 
+
+```{r}
+ggplot(na.omit(ysidata), aes(x=density, y=do_surface, fill = density)) +
+  labs(title = "Surface Dissolved Oxygen in Mesocosm Tanks", x = "Eelgrass Density", y = "Surface Dissolved Oxygen (mg/L)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
 
 ```
 
+Surface Salinity Boxplots 
 
+```{r}
+ggplot(na.omit(ysidata), aes(x=density, y=salinity_surface, fill = density)) +
+  labs(title = "Surface Salinity in Mesocosm Tanks", x = "Eelgrass Density", y = "Surface Salinity (ppt)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+```
+
+DEEP pH Boxplot 
+
+```{r}
+ggplot(na.omit(ysidata), aes(x=density, y=pH_deep, fill = density)) +
+  labs(title = "Deep pH in Mesocosm Tanks", x = "Eelgrass Density", y = "Deep pH (NBS)") +     geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+```
+
+Deep temp boxplot
+
+```{r}
+ggplot(na.omit(ysidata), aes(x=density, y= t_deep, fill = density)) +
+  labs(title = "Deep Temperature in Mesocosm Tanks", x = "Eelgrass Density", y = "Deep Temperature (C)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+```
+
+Deep DO Boxplots
+
+```{r}
+ggplot(na.omit(ysidata), aes(x=density, y=t_surface, fill = density)) +
+  labs(title = "Deep Dissolved Oxygen in Mesocosm Tanks", x = "Eelgrass Density", y = "Dissolved Oxygen (mg/L)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+```
+
+Deep Salinity boxplots 
+
+```{r}
+ggplot(na.omit(ysidata), aes(x=density, y=salinity_deep, fill = density)) +
+  labs(title = "Deep Salinity in Mesocosm Tanks", x = "Eelgrass Density", y = "Deep Salinity (ppt)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+
+```
+
+Use pivot_longer to combine surface and deep columns and create new column 'depth'.Try plotting Deep and Surface data sets on same graph for pH versus depth 
+
+```{r}
+###Found this here: https://stackoverflow.com/questions/59253987/parallel-pivot-longer-of-two-sets-of-columns
+## I don't know how to get what I want, so time to take the lazy way out
+ysidata %>% 
+  filter(!is.na(sample_id)) %>% 
+  select(-sample_id) %>% 
+  pivot_longer(-Date, 
+               names_to = c("Var", ".value"), 
+               names_sep = "_")
+
+
+## Create two dataframes, one for surface, one for deep
+df_surface <- ysidata %>% 
+  filter(!is.na(sample_id)) %>% 
+  select(-sample_id) %>%
+  select(Date, density, contains("_surface")) %>% ## Select just surface columns + metadata
+  rename_with(~str_remove(., '_surface')) %>% ## Remove _surface so columns will match
+  mutate(depth = "surface")
+
+df_deep <- ysidata %>% 
+  filter(!is.na(sample_id)) %>% 
+  select(-sample_id) %>%
+  select(Date, density, contains("_deep")) %>%  
+  rename_with(~str_remove(., '_deep')) %>% 
+  mutate(depth = "deep")
+
+df <- bind_rows(df_surface, df_deep)
+
+## checking my work
+ggplot(df, aes(pH, do, color = density)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = F) + 
+  facet_wrap(~depth, nrow = 1)
+
+ggplot(df, aes(density, do, fill = depth)) + 
+  geom_boxplot()
+
+```
