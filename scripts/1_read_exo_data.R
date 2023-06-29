@@ -101,6 +101,8 @@ plot_variable <- function(var, y_label){
     geom_line()
 }
 
-plot_variable(p_h1, "pH 1")
+
+write_csv(df, "data/exo_timeseries_raw.csv")
+
 
 

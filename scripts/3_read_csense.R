@@ -11,13 +11,6 @@
 
 # 1. Setup ---------------------------------------------------------------------
 
-## Load packages
-require(pacman)
-p_load(tidyverse, # keep things tidy
-       parsedate, # parse_date()
-       janitor, # clean_names()
-       lubridate) # tidy datetime handling
-
 ## Location of raw EXO datasets
 raw_filepath = "data/csense/timeseries"
 
