@@ -86,3 +86,12 @@ plot_grid(temp_plot,
           ncol = 1)
 ggsave("figures/timeseries_check.png", width = 10, height = 12)
  
+
+
+# X. Import and format maintenance intervals -----------------------------------
+
+sensor_check_times <- read_excel("data/from_sharedrive/Bi-weekly_Tank_Sampling_2023.xlsx", sheet = 3) %>% 
+  slice(3:n()) %>% 
+  clean_names()
+
+
