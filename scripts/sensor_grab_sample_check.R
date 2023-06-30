@@ -13,11 +13,9 @@ biweekly <- read_excel("data/Bi-weekly_Tank_Sampling_2023.xlsx",2) %>%
   clean_names() %>% slice(4:n())
 #select only the rows corresponding to tanks 3 and 5
 biweekly <- biweekly %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id))  %>% drop_na(time_collected_psd)
-head(biweekly)
 #for some reason the times in this sheet get loaded in as decimals (ie 0.5 is noon)
 #manually convert to seconds and drop anything that doesnt have a co2 measurement
 biweekly <- biweekly %>% mutate(time_collected_psd = as.hms(as.numeric(time_collected_psd)*3600*24))
-head(biweekly)
 #select all the calgas rows and create a datetime column
 biweekly <- biweekly %>% mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd)))
 
@@ -25,7 +23,6 @@ biweekly <- biweekly %>% mutate(datetime = as.POSIXct(paste(parse_date(date), ti
 timeseries <- read_excel("data/Bi-weekly_Tank_Sampling_2023.xlsx",4) %>% 
   select(contains("Sample ID"), contains("CO2 mean"), contains("CO2 stdev"), contains("Date"), contains("Time Collected (PSD)")) %>%
   clean_names()
-head(timeseries)
 #for some reason the times get saved with a random date attached, reformat to lose the date
 timeseries$time_collected_psd <- format(ymd_hms(timeseries$time_collected_psd), "%H:%M:%S")
 #select all the calgas rows and create a datetime column
@@ -40,10 +37,10 @@ grabs <- rbind(timeseries, biweekly)
 grabs <- grabs %>% select(sample_id, co2_mean, datetime) %>%
   mutate(datetime = force_tz(datetime, tz = "America/Los_Angeles"),
          co2_mean = 1.052*co2_mean)
-view(grabs)
+
 grabs <- grabs %>% pivot_wider(names_from = sample_id, values_from = co2_mean)
 grabs <- grabs %>% rename("co2_5"="5", "co2_3"="3")
-view(grabs)
+
 
 #reads in the csense data 
 csense <-  read_delim("data/csense_timeseries_raw.csv") %>% 
@@ -62,8 +59,6 @@ setkey(csense, "datetime_pdt")
 
 #aligns the sensor and grab sample data by nearest timecode 
 aligned <- csense[grabs, roll = TRUE]
-
-view(aligned)
 
 aligned_5 <- aligned %>% drop_na(co2_5)  %>% select(datetime_pdt, co2_ppm_bare, co2_5)
 aligned_3 <- aligned %>% drop_na(co2_3)  %>% select(datetime_pdt, co2_ppm_eelgrass, co2_3)
