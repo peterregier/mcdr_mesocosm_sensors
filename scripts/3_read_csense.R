@@ -39,7 +39,8 @@ read_cr6 <- function(file){
            SEVolt_2 = as.numeric(SEVolt_2)) %>% 
     mutate(datetime_1min = force_tz(parsedate::parse_date(TIMESTAMP), tzone = common_tz)) %>% 
     mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
-    select(datetime, contains("SEVolt_"))  %>% 
+    mutate(datetime_raw = as.character(datetime)) %>% 
+    select(datetime, datetime_raw, contains("SEVolt_"))  %>% 
     group_by(datetime) %>% 
     summarize(co2_ppm_bare = mean_(SEVolt_1), 
               co2_ppm_eelgrass = mean_(SEVolt_2),
@@ -59,7 +60,8 @@ df_raw <- read_delim(list.files(raw_filepath, pattern = "CR6Series_Table1", full
   mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
   select(datetime, contains("SEVolt_"))  %>% 
   group_by(datetime) %>% 
-  summarize(co2_ppm_bare = mean_(SEVolt_1), 
+  summarize(datetime_raw = as.character(first(datetime)), 
+            co2_ppm_bare = mean_(SEVolt_1), 
             co2_ppm_eelgrass = mean_(SEVolt_2),
             sd_ppm_bare = sd_(SEVolt_1), 
             sd_ppm_eelgrass = sd_(SEVolt_2)) 
@@ -69,7 +71,7 @@ df_raw <- read_delim(list.files(raw_filepath, pattern = "CR6Series_Table1", full
 
 df_raw %>% 
   select(datetime, contains("co2")) %>% 
-  pivot_longer(cols = -c(datetime)) %>% 
+  pivot_longer(cols = -c(contains("datetime"))) %>% 
 ggplot(aes(datetime, value, color = name)) + 
   geom_line()
 
@@ -78,5 +80,12 @@ ggplot(aes(datetime, value, color = name)) +
 ### on how EXO deployments are structured. But for now, leaving blank and exporting
 ### so it can be joined with pCO2 data.
 
-write_csv(df_raw, "data/csense_all_data_raw.csv")
+# 4. Write out data ------------------------------------------------------------
+
+df_final <- df_raw %>% 
+  mutate(datetime_pdt = as.character(datetime)) %>% 
+  relocate(datetime_pdt) %>% 
+  select(-datetime)
+
+write_csv(df_final, "data/csense_timeseries_raw.csv")
 

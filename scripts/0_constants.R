@@ -7,6 +7,8 @@ p_load(tidyverse, # keep things tidy
        parsedate, # parse_date()
        janitor, # clean_names()
        hms,
+       cowplot,
+       readxl,
        lubridate) # tidy datetime handling
 
 ## Set the temporal bin-rate for both datasets

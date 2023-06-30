@@ -17,14 +17,6 @@
 
 # 1. Setup ---------------------------------------------------------------------
 
-## Load packages
-require(pacman)
-p_load(tidyverse, # keep things tidy
-       parsedate, # parse_date()
-       janitor, # clean_names()
-       tictoc, # how long will this take...
-       lubridate) # tidy datetime handling
-
 ## Location of raw EXO datasets
 ts_directory = "data/exo/timeseries"
 
@@ -65,10 +57,11 @@ read_exo <- function(path) {
     clean_names() %>% 
     mutate(datetime_raw = parsedate::parse_date(paste(date_mm_dd_yyyy, 
                                                       time_hh_mm_ss))) %>% 
-    mutate(datetime = force_tz(datetime_raw, tzone = "America/Los_Angeles"),
+    mutate(datetime = force_tz(datetime_raw, tzone = common_tz),
            path = path) %>%
+    mutate(datetime_raw = as.character(datetime_raw)) %>% 
     rename("do_mgl" = "odo_mg_l") %>% 
-    select(datetime, temp_c, depth_m, sal_psu, do_mgl, contains("p_h"), battery_v, wiper_position_volt, path) %>% 
+    select(datetime, datetime_raw, temp_c, depth_m, sal_psu, do_mgl, contains("p_h"), battery_v, wiper_position_volt, path) %>% 
     select(-contains("_m_v"))
 }
 
@@ -91,7 +84,8 @@ df_eelgrass <- ts_files %>%
   rename("p_h1" = p_h_21, "p_h2" = p_h_22)
 
 df <- bind_rows(df_bare %>% mutate(tank = "Bare"), 
-                df_eelgrass %>% mutate(tank = "Eelgrass"))
+                df_eelgrass %>% mutate(tank = "Eelgrass")) 
+
 
 
 ## Create exploratory plots ----------------------------------------------------
@@ -102,7 +96,14 @@ plot_variable <- function(var, y_label){
 }
 
 
-write_csv(df, "data/exo_timeseries_raw.csv")
+# Write out data 
+
+df_final <- df %>% 
+  mutate(datetime_pdt = as.character(datetime)) %>% 
+  relocate(datetime_pdt) %>% 
+  select(-datetime) 
+
+write_csv(df_final, "data/exo_timeseries_raw.csv")
 
 
 
