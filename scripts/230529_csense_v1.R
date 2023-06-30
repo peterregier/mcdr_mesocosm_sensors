@@ -20,7 +20,7 @@ theme_set(theme_bw())
 
 # 2. Read data -----------------------------------------------------------------
 
-csense_raw <- read_delim("data/csense/timeseries/CR6Series_Table1.dat", skip = 1) %>% 
+csense_raw <- read_delim("data/csense/timeseries/CR6Series_Table1_0612_0626.dat", skip = 1) %>% 
   slice(3:n()) %>% 
   mutate(datetime = parsedate::parse_date(TIMESTAMP), 
          co2_ppm_bare = as.numeric(SEVolt_1), 
@@ -35,3 +35,4 @@ p1 <- ggplot(csense_long, aes(datetime, value, color = name)) +
 
 ggplotly(p1)
 
+ggsave("C:/Users/roac878/OneDrive - PNNL/Documents/csense_plot.png")
