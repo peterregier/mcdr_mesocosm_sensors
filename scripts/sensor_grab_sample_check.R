@@ -40,23 +40,68 @@ grabs <- rbind(timeseries, biweekly)
 grabs <- grabs %>% select(sample_id, co2_mean, datetime) %>%
   mutate(datetime = force_tz(datetime, tz = "America/Los_Angeles"),
          co2_mean = 1.052*co2_mean)
+view(grabs)
 grabs <- grabs %>% pivot_wider(names_from = sample_id, values_from = co2_mean)
+grabs <- grabs %>% rename("co2_5"="5", "co2_3"="3")
 view(grabs)
 
 #reads in the csense data 
 csense <-  read_delim("data/csense_timeseries_raw.csv") %>% 
-  select(datetime_raw, co2_ppm_bare, co2_ppm_eelgrass)
-#view(csense)
+  select(datetime_pdt, co2_ppm_bare, co2_ppm_eelgrass)
 
-csense$datetime_raw <-  force_tz(csense$datetime_raw, tz = "America/Los_Angeles")
+#makes sure timezone is in PDT 
+csense$datetime_pdt <- force_tz(csense$datetime_pdt, tz = "America/Los_Angeles")
 
-#view(csense)
+#converts data frames to data tables
 grabs <- data.table(grabs)
 csense <- data.table(csense)   
 
+#sets keys to align timecodes 
 setkey(grabs, "datetime")
-setkey(csense, "datetime_raw")
+setkey(csense, "datetime_pdt")
 
+#aligns the sensor and grab sample data by nearest timecode 
 aligned <- csense[grabs, roll = TRUE]
 
 view(aligned)
+
+aligned_5 <- aligned %>% drop_na(co2_5)  %>% select(datetime_pdt, co2_ppm_bare, co2_5)
+aligned_3 <- aligned %>% drop_na(co2_3)  %>% select(datetime_pdt, co2_ppm_eelgrass, co2_3)
+
+aligned_5 <- aligned_5 %>% rename("co2"="co2_5", "co2_ppm"="co2_ppm_bare")
+aligned_3 <- aligned_3 %>% rename("co2"="co2_3", "co2_ppm"="co2_ppm_eelgrass")
+
+stacked <- rbind(aligned_5, aligned_3)
+
+#view(stacked)
+
+#stacked <- stacked[!12,]
+
+#head(aligned_5)
+
+ggplot(aligned_5, aes(co2_ppm, co2))+ 
+  geom_point()+
+  geom_smooth(method="lm",color="blue")+
+  labs(title="CO2 Zero Density Eelgrass", x="CSense CO2 Conc (ppm)", y="Grab Sample CO2 Conc (ppm)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+ggsave("co2_bare.png",width = 4, height = 4)
+summary(lm(co2_ppm~co2, data=aligned_5))
+
+ggplot(aligned_3, aes(co2_ppm, co2))+ 
+  geom_point()+
+  geom_smooth(method="lm",color="green")+
+  labs(title="CO2 High Density Eelgrass", x="CSense CO2 Conc (ppm)", y="Grab Sample CO2 Conc (ppm)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+ggsave("co2_eelgrass.png", width = 4, height = 4)
+summary(lm(co2_ppm~co2, data=aligned_3))
+
+ggplot(stacked, aes(co2_ppm, co2))+
+  geom_point()+ 
+  geom_smooth(method="lm", color="turquoise")+ 
+  labs(title="CO2", x="CSense CO2 Conc (ppm)", y="Grab Sample CO2 Conc (ppm)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+ggsave("co2.png",width = 4, height = 4)
+summary (lm(co2_ppm~co2, data = stacked))
