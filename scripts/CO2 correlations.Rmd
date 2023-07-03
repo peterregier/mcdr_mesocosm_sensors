@@ -1,0 +1,180 @@
+---
+title: "CO2 correlations"
+author: "Kay"
+date: "2023-07-03"
+output: html_document
+---
+
+Load libraries
+```{r}
+require(pacman)
+p_load(tidyverse,
+       janitor,
+       hms,
+       dplyr,
+       ggpubr, 
+       ggplot2,
+       corrplot, 
+       cowplot,
+       readxl,
+       data.table,
+       here)
+```
+
+Use 'Here' function to map to directory 
+```{r}
+here::i_am("CO2 Correlations.Rmd")
+```
+
+Import Excel File of grab sample data. Clean up Data. 
+```{r}
+biweekly <- read_excel("Bi-weekly_Tank_Sampling_2023.xlsx",2) %>%
+  select(contains("Sample ID"), contains("CO2 mean"), contains("Date"), contains("pH (NBS)"), contains("Tank T (C)"), contains ("Salinity")) %>%
+  clean_names() %>% slice(4:n())
+
+biweekly <- biweekly %>% drop_na (tank_t_c) 
+
+biweekly
+
+```
+
+
+Import Excel File of YSI daily data 
+```{r}
+### Read in the data from Excel
+ysidata <- read_excel(here("Daily_TankSpotChecks_2023.xlsx"))
+
+### Select rows and columns, rename columns, select columns for df 
+ysidata <- ysidata[2:164,] %>% ### CHANGE THIS AS MORE DATA IS ADDED TO EXCEL 
+  rename("sample_id" = "Sample ID", "t_surface" = "T (C)", "t_deep" = "...4", "salinity_surface" = "Salinity (ppt)", "salinity_deep" = "...6", "pH_surface" = "pH (NBS)", "pH_deep" = "...8", "do_surface" = "DO (mg/L)", "do_deep" = "...10", "date"="Date") %>%
+  select(-Notes,-Initials,-`Calibration (y/n)`, - `Time Start(PSD)`, -`Time Stop(PSD)`, -`Flow Rate (L/min)`) 
+
+### Convert chars to numeric from data frame, change sample id to eelgrass densities
+ysidata <- ysidata %>%
+  mutate_at(c('t_surface', 't_deep', 'salinity_surface', 'salinity_deep', 'pH_surface', 'pH_deep', 'do_surface','do_deep'), as.numeric) 
+
+
+### Select just surface DO (since gas samples taken from surface), date, and sample ID to merge with CO2 dataset 
+
+for_merging <- ysidata %>% select (do_surface, date, sample_id)
+
+for_merging
+```
+
+Merge datasets together 
+```{r}
+### Merge dataframes together 
+merged <- merge (x=biweekly, y=for_merging, by=c('date','sample_id'))
+
+### Some of the columns are still characters, convert them to numeric 
+merged <- merged %>%
+  mutate_at(c('p_h_nbs', 'tank_t_c', 'salinity_psu'), as.numeric)
+
+merged <- merged %>% 
+  mutate(density = case_when(sample_id == 1 ~ 'Medium', sample_id == 2 ~ 'High', sample_id == 3 ~ 'High', sample_id == 4 ~ 'Low', sample_id == 5 ~ 'Zero', sample_id == 6 ~ 'Low', sample_id == 7 ~ 'Zero', sample_id == 8 ~ 'Medium', sample_id == "Inlet" ~ "Inlet"))
+
+merged$density <- factor(merged$density, levels = c("High", "Medium", "Low", "Zero", "Inlet"))
+
+merged
+```
+
+Plot correlation matrices between variables using corrplot
+```{r}
+co2_cor <- merged %>% 
+  select(tank_t_c, p_h_nbs, do_surface, salinity_psu, co2_mean) %>%
+  select(where(is.numeric)) %>% ## only select numeric variables
+  drop_na()
+
+cor(co2_cor) %>%
+  corrplot()
+
+
+```
+
+CO2 correlations with pH and do
+```{r}
+### do and co2 correlation stats
+summary(lm(do_surface~co2_mean, data = merged))
+
+### pH and co2 correlation stats
+summary(lm(do_surface~co2_mean, data=merged))
+
+### salinity and co2 correlation stats 
+summary(lm(salinity_psu~co2_mean, data=merged))
+
+### temp and co2 correlation stats
+summary(lm(tank_t_c~co2_mean, data=merged))
+
+```
+
+CO2 and Temperature plot 
+```{r}
+ggplot(na.omit(merged), aes(tank_t_c, co2_mean)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color = "red") + 
+  labs(title = "CO2 versus Temperature", x = "Temperature (C)", y = "CO2 Concentrations (ppm)") +
+  theme_set(theme_bw())
+
+```
+
+CO2 and pH plot 
+```{r}
+ggplot(na.omit(merged), aes(p_h_nbs, co2_mean)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color = "red") + 
+  labs(title = "CO2 versus pH", x = "pH (NBS)", y = "CO2 Concentrations (ppm)") +
+  theme_set(theme_bw())
+
+ggsave("co2_ph_lm.png",width = 8, height = 4)
+
+```
+
+Plot co2 and salinity 
+```{r}
+ggplot(na.omit(merged), aes(salinity_psu, co2_mean)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color = "red") + 
+  labs(title = "CO2 versus Salinity", x = "Salinity (psu)", y = "CO2 Concentrations (ppm)") +
+  theme_set(theme_bw())
+```
+
+Plot co2 and do 
+```{r}
+ggplot(na.omit(merged), aes(tank_t_c, co2_mean)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color = "red") + 
+  labs(title = "CO2 versus Dissolved Oxygen", x = "Dissolved Oxygen (mg/L)", y = "CO2 Concentrations (ppm)") +
+  theme_set(theme_bw())
+
+ggsave("co2_do_lm.png",width = 8, height = 4)
+```
+
+Plot co2 for different densities  
+```{r}
+compare_density = compare_density <- list(c("Medium", "Low"),
+                                          c("Low", "High"),
+                                          c("High", "Medium"), 
+                                          c("High", "Zero"), 
+                                          c("Zero", "Medium"), 
+                                          c("Zero","Low"))
+
+
+ggplot(na.omit(merged), aes(density, co2_mean, fill=density)) + 
+  geom_boxplot() + 
+  labs(title = "CO2 Concentration in Tanks of Different Densities of Eelgrass", x="Density of Eelgrass", y="CO2 concentration (ppm)") +
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+
+ggsave("co2_densities_boxplot.png",width = 8, height = 4)
+
+
+```
+
+
+
+
+
+
+
+
+
+

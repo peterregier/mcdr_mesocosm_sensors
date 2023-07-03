@@ -24,23 +24,29 @@ p_load(tidyverse,
 Use the 'here' function to map to directory 
 
 ``` {r}
-here::i_am("YSIhandhelddata.Rmd") 
+here::i_am("README.md") 
 ```
 
 
-Import Excel file. Clean up data. 
+Import Excel file. Clean up data
 
 ``` {r}
-
+### Read in the data from Excel
 ysidata <- read_excel(here("data/Daily_TankSpotChecks_2023.xlsx"))
 
-ysidata <- ysidata[2:82,] %>% 
+### Select rows and columns, rename columns, select columns for df 
+ysidata <- ysidata[2:164,] %>% ### CHANGE AS MORE DATA IS ADDED TO EXCEL
   rename("sample_id" = "Sample ID", "t_surface" = "T (C)", "t_deep" = "...4", "salinity_surface" = "Salinity (ppt)", "salinity_deep" = "...6", "pH_surface" = "pH (NBS)", "pH_deep" = "...8", "do_surface" = "DO (mg/L)", "do_deep" = "...10") %>%
   select(-Notes,-Initials,-`Calibration (y/n)`, - `Time Start(PSD)`, -`Time Stop(PSD)`, -`Flow Rate (L/min)`) 
 
-ysidata <- ysidata %>%
-  mutate_at(c('t_surface', 't_deep', 'salinity_surface', 'salinity_deep', 'pH_surface', 'pH_deep', 'do_surface','do_deep'), as.numeric) %>%
-  mutate(density = case_when(sample_id == 1 ~ 'Medium', sample_id == 2 ~ 'High', sample_id == 3 ~ 'High', sample_id == 4 ~ 'Low', sample_id == 5 ~ 'Zero', sample_id == 6 ~ 'Low', sample_id == 7 ~ 'Zero', sample_id == 8 ~ 'Medium', sample_id == "Inlet" ~ "Inlet")) 
+### Convert chars to numeric from data frame, change sample id to eelgrass densities
+
+ysidata <- ysidata %>% mutate_at(c('t_surface', 't_deep', 'salinity_surface', 'salinity_deep', 'pH_surface', 'pH_deep', 'do_surface','do_deep'), as.numeric) %>% mutate(density = case_when(sample_id == 2 ~ 'High', sample_id == 3 ~ 'High', sample_id == 1 ~'Medium', sample_id == 8 ~ 'Medium', sample_id == 4 ~ 'Low', sample_id == 6 ~ 'Low', sample_id == 5 ~ 'Zero', sample_id == 7 ~ 'Zero', sample_id == "Inlet" ~ "Inlet")) 
+
+ysidata$density <- factor(ysidata$density, levels = c("High", "Medium", "Low", "Zero", "Inlet"))
+
+### Change sample_id column from characters into factors so it will stop sorting them alphabetically UGH 
+
 
 ysidata
 
@@ -284,7 +290,6 @@ ggplot(na.omit(ysidata), aes(x=density, y=salinity_deep, fill = density)) +
   labs(title = "Deep Salinity in Mesocosm Tanks", x = "Eelgrass Density", y = "Deep Salinity (ppt)") + 
   geom_boxplot() + ## add boxplots
   stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
-
 ```
 
 Use pivot_longer to combine surface and deep columns and create new column 'depth'.Try plotting Deep and Surface data sets on same graph for pH versus depth 
@@ -318,12 +323,28 @@ df_deep <- ysidata %>%
 df <- bind_rows(df_surface, df_deep)
 
 ## checking my work
+
+ggplot(df, aes(density, do, fill = depth)) + 
+  geom_boxplot() + 
+  labs(title = "Dissolved Oxygen in Tanks of Different Densities of Eelgrass", x="Density of Eelgrass", y="Dissolved Oxygen (mg/L)")
+
+ggplot (df, aes(density, pH, fill=depth))+
+  geom_boxplot()+
+  labs(title = "pH in Tanks of Different Densities of Eelgrass", x="Density of Eelgrass", y="pH (NBS)")
+
+
+```
+
+
+```{r}
 ggplot(df, aes(pH, do, color = density)) + 
   geom_point() + 
   geom_smooth(method = "lm", se = F) + 
-  facet_wrap(~depth, nrow = 1)
+  facet_wrap(~depth, nrow = 1) +
+  labs(title = "pH versus Dissolved Oxygen for Different Densities of Eelgrass",
+       x="pH (NBS)", y="Dissolved Oxygen (mg/L)")
 
-ggplot(df, aes(density, do, fill = depth)) + 
-  geom_boxplot()
+ggsave("ph_do_lm.png",width = 8, height = 4)
 
 ```
+
