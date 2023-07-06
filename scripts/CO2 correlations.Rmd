@@ -23,18 +23,18 @@ p_load(tidyverse,
 
 Use 'Here' function to map to directory 
 ```{r}
-here::i_am("CO2 Correlations.Rmd")
+here::i_am("README.md")
 ```
 
 Import Excel File of grab sample data. Clean up Data. 
 ```{r}
-biweekly <- read_excel("Bi-weekly_Tank_Sampling_2023.xlsx",2) %>%
+biweekly <- read_excel(here("data/Bi-weekly_Tank_Sampling_2023.xlsx"), 2) %>%
   select(contains("Sample ID"), contains("CO2 mean"), contains("Date"), contains("pH (NBS)"), contains("Tank T (C)"), contains ("Salinity")) %>%
   clean_names() %>% slice(4:n())
 
 biweekly <- biweekly %>% drop_na (tank_t_c) 
 
-biweekly
+###biweekly
 
 ```
 
@@ -42,7 +42,7 @@ biweekly
 Import Excel File of YSI daily data 
 ```{r}
 ### Read in the data from Excel
-ysidata <- read_excel(here("Daily_TankSpotChecks_2023.xlsx"))
+ysidata <- read_excel(here("data/Daily_TankSpotChecks_2023.xlsx"))
 
 ### Select rows and columns, rename columns, select columns for df 
 ysidata <- ysidata[2:164,] %>% ### CHANGE THIS AS MORE DATA IS ADDED TO EXCEL 
@@ -51,14 +51,13 @@ ysidata <- ysidata[2:164,] %>% ### CHANGE THIS AS MORE DATA IS ADDED TO EXCEL
 
 ### Convert chars to numeric from data frame, change sample id to eelgrass densities
 ysidata <- ysidata %>%
-  mutate_at(c('t_surface', 't_deep', 'salinity_surface', 'salinity_deep', 'pH_surface', 'pH_deep', 'do_surface','do_deep'), as.numeric) 
-
+  mutate_at(c('t_surface', 't_deep', 'salinity_surface', 'salinity_deep', 'pH_surface', 'pH_deep', 'do_surface','do_deep'), as.numeric)  
 
 ### Select just surface DO (since gas samples taken from surface), date, and sample ID to merge with CO2 dataset 
 
 for_merging <- ysidata %>% select (do_surface, date, sample_id)
 
-for_merging
+###for_merging
 ```
 
 Merge datasets together 
@@ -75,7 +74,7 @@ merged <- merged %>%
 
 merged$density <- factor(merged$density, levels = c("High", "Medium", "Low", "Zero", "Inlet"))
 
-merged
+###merged
 ```
 
 Plot correlation matrices between variables using corrplot
@@ -170,11 +169,73 @@ ggsave("co2_densities_boxplot.png",width = 8, height = 4)
 ```
 
 
+Plot CO2 vs DO linear regression with densities separated by color 
+```{r}
+ggplot(na.omit(merged), aes(do_surface, co2_mean, color=density)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se=FALSE) + 
+  labs(title = "CO2 versus Dissolved Oxygen by Density of Eelgrass", x = "Dissolved Oxygen (mg/L)", y = "CO2 Concentrations (ppm)") +
+  theme_set(theme_bw())
+
+ggsave("co2_do_densbycolor.png",width = 8, height = 4)
+
+```
+
+Plot DO and pH over time for different densities. Use ysidata 
+```{r}
+### Get Data ready 
+ysidata <- ysidata %>%
+  mutate(density = case_when(sample_id == 2 ~ 'High', sample_id == 3 ~ 'High', sample_id == 1 ~'Medium', sample_id == 8 ~ 'Medium', sample_id == 4 ~ 'Low', sample_id == 6 ~ 'Low', sample_id == 5 ~ 'Zero', sample_id == 7 ~ 'Zero', sample_id == "Inlet" ~ "Inlet"))
+
+ysidata$density <- factor(ysidata$density, levels = c("High", "Medium", "Low", "Zero", "Inlet"))
+
+ysidata %>% 
+  filter(!is.na(sample_id)) %>% 
+  select(-sample_id) %>% 
+  pivot_longer(-date, 
+               names_to = c("Var", ".value"), 
+               names_sep = "_")
 
 
+## Create two dataframes, one for surface, one for deep
+df_surface <- ysidata %>% 
+  filter(!is.na(sample_id)) %>% 
+  select(-sample_id) %>%
+  select(date, density, contains("_surface")) %>% ## Select just surface columns + metadata
+  rename_with(~str_remove(., '_surface')) %>% ## Remove _surface so columns will match
+  mutate(depth = "surface")
 
+df_deep <- ysidata %>% 
+  filter(!is.na(sample_id)) %>% 
+  select(-sample_id) %>%
+  select(date, density, contains("_deep")) %>%  
+  rename_with(~str_remove(., '_deep')) %>% 
+  mutate(depth = "deep")
 
+df <- bind_rows(df_surface, df_deep)
 
+### PLOTS 
 
+### do over time
+ggplot(na.omit(df), aes(date, do, color=density)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se=FALSE) + 
+  ###facet_wrap(~density) +
+  labs(title = "Dissolved Oxygen Over Time by Density of Eelgrass", x = "Date", y = "Dissolved Oxygen (mg/L)") +
+  theme_set(theme_bw())
+
+ggsave("do_time.png",width = 8, height = 4)
+
+### pH over time 
+ggplot(na.omit(df), aes(date, pH, color=density)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se=FALSE) + 
+  ###facet_wrap(~density) +
+  labs(title = "pH Over Time by Density of Eelgrass", x = "Date", y = "pH (NBS)") +
+  theme_set(theme_bw())
+
+ggsave("ph_time.png",width = 8, height = 4)
+
+```
 
 
