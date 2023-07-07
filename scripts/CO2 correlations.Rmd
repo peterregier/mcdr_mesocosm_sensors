@@ -18,6 +18,9 @@ p_load(tidyverse,
        cowplot,
        readxl,
        data.table,
+       parsedate,
+       lubridate,
+       gridExtra,
        here)
 ```
 
@@ -171,11 +174,13 @@ ggsave("co2_densities_boxplot.png",width = 8, height = 4)
 
 Plot CO2 vs DO linear regression with densities separated by color 
 ```{r}
-ggplot(na.omit(merged), aes(do_surface, co2_mean, color=density)) + 
+ggplot(na.omit(merged), aes(do_surface, co2_mean, color=date)) + 
   geom_point() + 
   geom_smooth(method = "lm", se=FALSE) + 
+  facet_wrap(~density) +
   labs(title = "CO2 versus Dissolved Oxygen by Density of Eelgrass", x = "Dissolved Oxygen (mg/L)", y = "CO2 Concentrations (ppm)") +
-  theme_set(theme_bw())
+  theme_set(theme_bw())  
+  ###scale_color_gradient(low="green", high="black")
 
 ggsave("co2_do_densbycolor.png",width = 8, height = 4)
 
@@ -230,12 +235,192 @@ ggsave("do_time.png",width = 8, height = 4)
 ggplot(na.omit(df), aes(date, pH, color=density)) + 
   geom_point() + 
   geom_smooth(method = "lm", se=FALSE) + 
-  ###facet_wrap(~density) +
+  facet_wrap(~density) +
   labs(title = "pH Over Time by Density of Eelgrass", x = "Date", y = "pH (NBS)") +
   theme_set(theme_bw())
+
+?geom_smooth
 
 ggsave("ph_time.png",width = 8, height = 4)
 
 ```
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+EXO AND CO2 BIWEEKLY+TIMESERIES CORRELATIONS 
+
+Look at EXO data for the tanks compared to the CO2 data and timeseries.
+
+Read in EXO data 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+```{r}
+#load in biweekly datasheet 
+co2_grab <- read_excel(here("data/Bi-weekly_Tank_Sampling_2023.xlsx"),2) %>% 
+  select(contains("Sample ID"), contains("CO2 mean"), contains("CO2 stdev"), contains("Date"), contains("Time Collected (PSD)")) %>%
+  clean_names() %>% slice(4:n())
+#select only the rows corresponding to tanks 3 and 5
+co2_grab <- co2_grab %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id))  %>% drop_na(time_collected_psd)
+#for some reason the times in this sheet get loaded in as decimals (ie 0.5 is noon)
+#manually convert to seconds and drop anything that doesnt have a co2 measurement
+co2_grab <- co2_grab %>% mutate(time_collected_psd = as.hms(as.numeric(time_collected_psd)*3600*24))
+#select all the calgas rows and create a datetime column
+co2_grab <- co2_grab %>% mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd)))
+
+#load in timeseries sheet
+timeseries <- read_excel(here("data/Bi-weekly_Tank_Sampling_2023.xlsx"),4) %>% 
+  select(contains("Sample ID"), contains("CO2 mean"), contains("CO2 stdev"), contains("Date"), contains("Time Collected (PSD)")) %>%
+  clean_names()
+#for some reason the times get saved with a random date attached, reformat to lose the date
+timeseries$time_collected_psd <- format(ymd_hms(timeseries$time_collected_psd), "%H:%M:%S")
+#select all the calgas rows and create a datetime column
+timeseries <- timeseries %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id)) %>%
+  mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd))) 
+
+
+#merges and pivots the grab sample data 
+grabs <- rbind(timeseries, co2_grab)
+
+grabs <- grabs %>% select(sample_id, co2_mean, datetime) %>%
+  mutate(datetime = force_tz(datetime, tz = "America/Los_Angeles"),
+         co2_mean = 1.052*co2_mean)
+
+grabs <- grabs %>% pivot_wider(names_from = sample_id, values_from = co2_mean)
+grabs <- grabs %>% rename("co2_5"="5", "co2_3"="3")
+
+View (grabs)
+
+```
+
+Read in EXO data
+
+```{r}
+exodata <- read_delim(here("data/exo_timeseries_raw.csv"), show_col_types = FALSE) 
+#for pH, take the average of the columns from the 2 pH sensors and create a new column to #store that info in
+#make sure the timezone is correct, ie PDT
+exodata <- exodata %>% mutate(p_havg = rowMeans(exodata[, c('p_h1', 'p_h2')]),
+                              datetime_pdt = force_tz(datetime_pdt, tz = "America/Los_Angeles")) 
+#select the relevant columns and pivot so that there are different columns for the #measurements from each tank
+exodata <- exodata %>% select(datetime_pdt, temp_c, sal_psu, do_mgl, p_havg, tank)
+exodata <- exodata %>% pivot_wider(names_from = tank, names_sep = "_", values_from = c(temp_c, sal_psu, do_mgl, p_havg))
+
+view(exodata)
+
+```
+
+Merge the EXO and CO2 biweekly/timeseries all together 
+
+```{r}
+exodata <- data.table(exodata)
+co2data <- data.table(grabs)
+
+#sets keys to align time
+setkey(co2data, "datetime")
+setkey(exodata, "datetime_pdt")
+
+aligned <- exodata[co2data, roll = TRUE]
+
+View (aligned)
+```
+
+Plot CO2 versus DO linear regression by tank type: high density or zero density 
+
+```{r}
+
+do_co2_bare <- ggplot(aligned, aes(do_mgl_Bare, co2_5)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color="blue") + 
+  labs(title = "Zero Density Eelgrass", x="", y="") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+do_co2_eelgrass <- ggplot(aligned, aes(do_mgl_Eelgrass, co2_3))+
+  geom_point()+
+  geom_smooth(method='lm', color="green")+
+  labs(title = "High Density Eelgrass", x="", y="") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+do_co2 <- grid.arrange(do_co2_bare, do_co2_eelgrass, nrow = 1, top = "CO2 versus DO", 
+                       left = "Carbon Dioxide Concentrations (ppm)", 
+                       bottom = "Dissolved Oxygen (mg/L)")
+
+ggsave("co2_do.png", do_co2, width=8, height=4)
+
+
+```
+
+
+```{r}
+
+ph_co2_bare <- ggplot(aligned, aes(p_havg_Bare, co2_5)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color="blue") + 
+  labs(title = "Zero Density Eelgrass", x="", y="") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+ph_co2_eelgrass <- ggplot(aligned, aes(p_havg_Eelgrass, co2_3))+
+  geom_point()+
+  geom_smooth(method='lm', color="green")+
+  labs(title = "High Density Eelgrass", x="", y="") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+ph_co2 <- grid.arrange(ph_co2_bare, ph_co2_eelgrass, nrow = 1, top = "CO2 versus pH", 
+                       left = "Carbon Dioxide Concentrations (ppm)", 
+                       bottom = "pH")
+
+ggsave("co2_ph.png", ph_co2, width=8, height=4)
+
+```
+
+Look at statistics for pH and CO2, do and CO2 
+
+```{r}
+summary(lm(co2_5~p_havg_Bare, data = aligned))
+
+summary (lm(co2_3~p_havg_Eelgrass, data=aligned))
+
+```
+pivot longer the data to make box plot by density
+
+```{r}
+### rename data to _Bare or _Eelgrass
+
+bydensity <- aligned %>% rename ("co2_Eelgrass"="co2_3", "co2_Bare"="co2_5")
+
+bydensity %>% 
+  pivot_longer(-datetime_pdt, 
+               names_to = c("Var", ".value"), 
+               names_sep = "_")
+
+## Create two dataframes, one for surface, one for deep
+df_bare <- bydensity %>% 
+  select(datetime_pdt, contains("_Bare")) %>% ## Select just Bare columns
+  rename_with(~str_remove(., '_Bare')) %>% ## Remove _surface so columns will match
+  mutate(density = "Zero")
+
+df_eelgrass <- bydensity %>% 
+  select(datetime_pdt, contains("_Eelgrass")) %>%  
+  rename_with(~str_remove(., '_Eelgrass')) %>% 
+  mutate(density = "High")
+
+df <- bind_rows(df_bare, df_eelgrass)
+
+view(df)
+```
+
+
+CO2 boxplots to see difference between high and low density eelgrass 
+
+```{r}
+
+compare_density <- list(c("High", "Zero"))
+
+ggplot(df, aes(density, co2, fill = density)) +
+  labs(title = "CO2 in Mesocosm Tanks", x = "Eelgrass Density", y = "CO2 Concentrations (ppm)") + 
+  geom_boxplot() + ## add boxplots
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+
+ggsave ("co2_density.png", width = 10, height = 5)
+
+```
+
+
 
 
