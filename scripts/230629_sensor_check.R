@@ -14,13 +14,23 @@
 source("scripts/0_constants.R")
 
 ## If you haven't recently rebuilt the master dataset, do so
-#source("scripts/4_make_master_data.R")
+source("scripts/4_make_master_data.R")
 
 
 # 2. Import data ---------------------------------------------------------------
 
 data <- read_csv("data/master_sensor_data.csv") %>% 
   filter(sal_psu > 20)
+
+
+x <- read_csv("data/master_sensor_data.csv") %>% 
+  filter(tank == "Bare") %>% 
+  filter(datetime_pdt > "2023-07-01") %>% 
+  ggplot(aes(datetime_pdt, sal_psu)) + 
+  geom_line()
+
+p_load(plotly)
+ggplotly(x)
 
 
 # 3. Make time-series plots ----------------------------------------------------
