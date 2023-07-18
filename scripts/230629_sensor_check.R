@@ -19,25 +19,24 @@ source("scripts/4_make_master_data.R")
 
 # 2. Import data ---------------------------------------------------------------
 
-data <- read_csv("data/master_sensor_data.csv") %>% 
-  filter(sal_psu > 20)
+df <- read_csv("data/master_sensor_data.csv") %>% 
+  filter(sal_psu > 20 | is.na(sal_psu))
 
-
-x <- read_csv("data/master_sensor_data.csv") %>% 
-  filter(tank == "Bare") %>% 
-  filter(datetime_pdt > "2023-07-01") %>% 
-  ggplot(aes(datetime_pdt, sal_psu)) + 
-  geom_line()
-
-p_load(plotly)
-ggplotly(x)
+# x <- read_csv("data/master_sensor_data.csv") %>% 
+#   filter(tank == "Bare") %>% 
+#   filter(datetime_pdt > "2023-07-01") %>% 
+#   ggplot(aes(datetime_pdt, sal_psu)) + 
+#   geom_line()
+# 
+# p_load(plotly)
+# ggplotly(x)
 
 
 # 3. Make time-series plots ----------------------------------------------------
 
 make_ts_plot <- function(var, y_label){
   
-  p0 <- ggplot(data, aes(datetime_pdt, {{var}}, color = tank)) + 
+  p0 <- ggplot(df, aes(datetime_pdt, {{var}}, color = tank)) + 
   geom_line() + 
   labs(x = "", y = y_label, color = "") + 
     theme(legend.position = "none")
