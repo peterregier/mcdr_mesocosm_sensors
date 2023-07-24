@@ -77,6 +77,9 @@ merged <- merged %>%
 
 merged$density <- factor(merged$density, levels = c("High", "Medium", "Low", "Zero", "Inlet"))
 
+
+View (merged)
+
 ###merged
 ```
 
@@ -145,7 +148,7 @@ Plot co2 and do
 ggplot(na.omit(merged), aes(tank_t_c, co2_mean)) + 
   geom_point() + 
   geom_smooth(method = "lm", color = "red") + 
-  labs(title = "CO2 versus Dissolved Oxygen", x = "Dissolved Oxygen (mg/L)", y = "CO2 Concentrations (ppm)") +
+  labs(title = "CO2 versus Dissolved Oxygen", x = "Dissolved Oxygen (mg/L)", y = "CO2 Concentrations (ppm)")+
   theme_set(theme_bw())
 
 ggsave("co2_do_lm.png",width = 8, height = 4)
@@ -225,7 +228,7 @@ df <- bind_rows(df_surface, df_deep)
 ggplot(na.omit(df), aes(date, do, color=density)) + 
   geom_point() + 
   geom_smooth(method = "lm", se=FALSE) + 
-  ###facet_wrap(~density) +
+  facet_wrap(~density) +
   labs(title = "Dissolved Oxygen Over Time by Density of Eelgrass", x = "Date", y = "Dissolved Oxygen (mg/L)") +
   theme_set(theme_bw())
 
@@ -275,6 +278,10 @@ timeseries$time_collected_psd <- format(ymd_hms(timeseries$time_collected_psd), 
 timeseries <- timeseries %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id)) %>%
   mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd))) 
 
+timeseries <- timeseries[1:30,]
+
+
+View (timeseries)
 
 #merges and pivots the grab sample data 
 grabs <- rbind(timeseries, co2_grab)
@@ -346,6 +353,7 @@ ggsave("co2_do.png", do_co2, width=8, height=4)
 
 ```
 
+Plot pH and CO2 linear regression by tank density 
 
 ```{r}
 
@@ -368,6 +376,31 @@ ph_co2 <- grid.arrange(ph_co2_bare, ph_co2_eelgrass, nrow = 1, top = "CO2 versus
 ggsave("co2_ph.png", ph_co2, width=8, height=4)
 
 ```
+
+
+Plot CO2 versus temperature linear regression
+
+```{r}
+t_co2_bare <- ggplot(aligned, aes(temp_c_Bare, co2_5)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", color="blue") + 
+  labs(title = "Zero Density Eelgrass", x="", y="") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+t_co2_eelgrass <- ggplot(aligned, aes(temp_c_Eelgrass, co2_3))+
+  geom_point()+
+  geom_smooth(method='lm', color="green")+
+  labs(title = "High Density Eelgrass", x="", y="") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+
+t_co2 <- grid.arrange(t_co2_bare, t_co2_eelgrass, nrow = 1, top = "CO2 versus Temperature", 
+                       left = "Carbon Dioxide Concentrations (ppm)", 
+                       bottom = "Temperature (C)")
+
+ggsave("co2_t.png", t_co2, width=8, height=4)
+
+```
+
 
 Look at statistics for pH and CO2, do and CO2 
 
@@ -415,11 +448,19 @@ compare_density <- list(c("High", "Zero"))
 ggplot(df, aes(density, co2, fill = density)) +
   labs(title = "CO2 in Mesocosm Tanks", x = "Eelgrass Density", y = "CO2 Concentrations (ppm)") + 
   geom_boxplot() + ## add boxplots
-  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density)
+  geom_hline (yintercept = 421, linetype="dashed", width = 150, color = 'red') +
+  stat_compare_means(aes(label = ..p.signif..), comparisons = compare_density) + 
+  annotate("text", x= "Zero", y = 350, label = "Atmospheric", vjust = -0.5)
 
 ggsave ("co2_density.png", width = 10, height = 5)
 
 ```
+
+TO DO
+
+ 
+Diurnal cycles – plotting with sensors – do, pH 
+
 
 
 
