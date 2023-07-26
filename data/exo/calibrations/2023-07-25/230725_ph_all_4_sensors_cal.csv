@@ -1,0 +1,145 @@
+KorEXO Calibration File Export
+
+Last Calibration Time=,7/25/2023 4:32:47 PM
+Calibration Start Time=,7/25/2023 4:33:20 PM
+Calibration End Time=,7/25/2023 4:45:34 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104985
+Instrument Serial Number=,17H104985
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH/ORP
+Sensor Serial Number=,20G104159
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 7.00-10.00 Delta Slope=,170.0 mV
+pH Range 7.00-10.00 mV per Decade=,56.68
+
+[Cal Point 1]
+Standard=,7.00 pH
+Pre Calibration Value=,6.99 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-12.0 mV
+Temperature=,20.671 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,10.00 pH
+Pre Calibration Value=,9.91 pH
+Post Calibration Value=,10.00 pH
+Raw Value=,-182.0 mV
+Temperature=,20.539 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,7/25/2023 4:32:47 PM
+Calibration Start Time=,7/25/2023 4:33:20 PM
+Calibration End Time=,7/25/2023 4:45:34 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104985
+Instrument Serial Number=,17H104985
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH/ORP
+Sensor Serial Number=,20G104157
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 7.00-10.00 Delta Slope=,168.3 mV
+pH Range 7.00-10.00 mV per Decade=,56.10
+
+[Cal Point 1]
+Standard=,7.00 pH
+Pre Calibration Value=,7.00 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-23.1 mV
+Temperature=,20.681 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,10.00 pH
+Pre Calibration Value=,9.86 pH
+Post Calibration Value=,10.00 pH
+Raw Value=,-191.5 mV
+Temperature=,20.562 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,7/25/2023 4:32:47 PM
+Calibration Start Time=,7/25/2023 4:33:20 PM
+Calibration End Time=,7/25/2023 4:45:34 PM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104985
+Instrument Serial Number=,17H104985
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH
+Sensor Serial Number=,18M100054
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 7.00-10.00 Delta Slope=,170.0 mV
+pH Range 7.00-10.00 mV per Decade=,56.66
+
+[Cal Point 1]
+Standard=,7.00 pH
+Pre Calibration Value=,7.00 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-10.0 mV
+Temperature=,20.697 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,10.00 pH
+Pre Calibration Value=,9.90 pH
+Post Calibration Value=,10.00 pH
+Raw Value=,-180.0 mV
+Temperature=,20.579 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,7/25/2023 4:32:47 PM
+Calibration Start Time=,7/25/2023 4:33:20 PM
+Calibration End Time=,7/25/2023 4:45:34 PM
+Calibration Status=,Completed
+QC Score=,Warning
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104985
+Instrument Serial Number=,17H104985
+Instrument Firmware Version=,1.0.86
+Parameter Type=,pH
+Sensor Type=,pH/ORP
+Sensor Serial Number=,20G104160
+Sensor Firmware Version=,3.0.0
+User ID=,<Unknown>
+Sensor Module Replacement Date=,<Unknown>
+pH Range 7.00-10.00 Delta Slope=,169.2 mV
+pH Range 7.00-10.00 mV per Decade=,56.40
+
+[Cal Point 1]
+Standard=,7.00 pH
+Pre Calibration Value=,7.00 pH
+Post Calibration Value=,7.00 pH
+Raw Value=,-39.0 mV
+Temperature=,20.710 °C
+Stability Achieved=,Yes
+
+[Cal Point 2]
+Standard=,10.00 pH
+Pre Calibration Value=,9.99 pH
+Post Calibration Value=,10.00 pH
+Raw Value=,-208.2 mV
+Temperature=,20.596 °C
+Stability Achieved=,Yes
+
+----------
