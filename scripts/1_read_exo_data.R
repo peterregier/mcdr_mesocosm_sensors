@@ -60,8 +60,9 @@ read_exo <- function(path) {
     mutate(datetime = force_tz(datetime_raw, tzone = common_tz),
            path = path) %>%
     mutate(datetime_raw = as.character(datetime_raw)) %>% 
-    rename("do_mgl" = "odo_mg_l") %>% 
-    select(datetime, datetime_raw, temp_c, depth_m, sal_psu, do_mgl, contains("p_h"), battery_v, wiper_position_volt, path) %>% 
+    rename("do_mgl" = "odo_mg_l", 
+           "do_perc" = odo_percent_local) %>% 
+    select(datetime, datetime_raw, temp_c, depth_m, sal_psu, do_perc, do_mgl, contains("p_h"), battery_v, wiper_position_volt, path) %>% 
     select(-contains("_m_v"))
 }
 
@@ -95,6 +96,7 @@ plot_variable <- function(var, y_label){
     geom_line()
 }
 
+plot_variable(do_perc) + geom_hline(yintercept = 100)
 
 # Write out data 
 
