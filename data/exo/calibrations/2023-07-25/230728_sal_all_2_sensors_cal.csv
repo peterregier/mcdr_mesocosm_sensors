@@ -1,0 +1,53 @@
+KorEXO Calibration File Export
+
+Last Calibration Time=,1/27/2022 9:24:50 AM
+Calibration Start Time=,7/28/2023 9:22:33 AM
+Calibration End Time=,7/28/2023 9:25:51 AM
+Calibration Status=,Completed
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104984
+Instrument Serial Number=,17H104984
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Sal (psu)
+Sensor Type=,Wiped Conductivity And Temperature
+Sensor Serial Number=,22A101972
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+Cell Constant=,0.46
+
+[Cal Point 1]
+Standard=,35.00 psu
+Pre Calibration Value=,35.42 psu
+Post Calibration Value=,35.00 psu
+Raw Value=,0.00 psu
+Temperature=,19.808 °C
+Stability Achieved=,Yes
+
+----------
+
+Last Calibration Time=,7/25/2023 4:14:22 PM
+Calibration Start Time=,7/28/2023 9:48:18 AM
+Calibration End Time=,7/28/2023 9:49:55 AM
+Calibration Status=,CompletedWithWarnings
+QC Score=,Good
+Instrument Type=,EXO2
+Instrument Name=,Sonde 17H104985
+Instrument Serial Number=,17H104985
+Instrument Firmware Version=,1.0.86
+Parameter Type=,Sal (psu)
+Sensor Type=,Wiped Conductivity And Temperature
+Sensor Serial Number=,21B105939
+Sensor Firmware Version=,3.0.5
+User ID=,<Unknown>
+Cell Constant=,0.46
+
+[Cal Point 1]
+Standard=,35.00 psu
+Pre Calibration Value=,32.22 psu
+Post Calibration Value=,35.00 psu
+Raw Value=,0.00 psu
+Temperature=,20.231 °C
+Stability Achieved=,Yes
+
+----------
