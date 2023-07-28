@@ -26,44 +26,14 @@ source("scripts/0_constants.R")
 
 # 2. Check encoding is UTF-8 for all files prior to importing data -------------
 
-## This function checks that all files are in UTF-8
-check_encoding <- function(directory){
-  ## Create a tibble of all the files
-  files <- tibble(files = paste0(directory, "/", list.files(directory)))
-  
-  encoding_vector <- list()
-  for(i in 1:nrow(files)){
-    encoding_vector[[i]] <- guess_encoding(read_file_raw(files$files[i]))$encoding[1]
-  }
-  
-  wrong_encoding <- tibble(files = files, 
-         encoding = unlist(encoding_vector)) %>% 
-    filter(encoding != "UTF-8")
-
-  ## If it's not, throw a warning!
-  if(nrow(wrong_encoding) > 0) warning(paste0("YOU HAVE ENCODING ISSUES BROOOO: "), print(wrong_encoding$files))
-}
-
 ## Check file formats (script needs UTF-8) - should be empty!
 check_encoding(ts_directory) 
 
 
 # 3. Read in EXO time-series ---------------------------------------------------
 
-## Set function to read in EXO2 raw datasets
-## This function reads in EXO2 data (consistently in the eelgrass tank)
-read_exo <- function(path) {
-  read_csv(path, skip = 8) %>% 
-    clean_names() %>% 
-    mutate(datetime_raw = parsedate::parse_date(paste(date_mm_dd_yyyy, 
-                                                      time_hh_mm_ss))) %>% 
-    mutate(datetime = force_tz(datetime_raw, tzone = common_tz),
-           path = path) %>%
-    mutate(datetime_raw = as.character(datetime_raw)) %>% 
-    rename("do_mgl" = "odo_mg_l") %>% 
-    select(datetime, datetime_raw, temp_c, depth_m, sal_psu, do_mgl, contains("p_h"), battery_v, wiper_position_volt, path) %>% 
-    select(-contains("_m_v"))
-}
+## The function read_exo() is now defined in the constants script because it will
+## be used for both exo time-series and the bucket tests
 
 ts_files <- tibble(file = list.files(path = ts_directory, full.names = T)) %>% 
   slice(3:n())
@@ -95,6 +65,7 @@ plot_variable <- function(var, y_label){
     geom_line()
 }
 
+plot_variable(do_perc) + geom_hline(yintercept = 100)
 
 # Write out data 
 
