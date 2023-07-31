@@ -1,3 +1,7 @@
+#Plot all of the gas samples taken so far (in timeseries and in biweekly samples)
+#as if they were all taken in one day, to get an idea of what the daily CO2 cycle might look like
+#Finn Roach 
+
 require(pacman)
 p_load(tidyverse, 
        parsedate,
@@ -13,12 +17,13 @@ biweekly <- read_excel("data/Bi-weekly_Tank_Sampling_2023.xlsx",2) %>%
   clean_names() %>% slice(4:n())
 #select only the rows corresponding to tanks 3 and 5
 biweekly <- biweekly %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id))  %>% drop_na(time_collected_psd)
+view(biweekly)
 #for some reason the times in this sheet get loaded in as decimals (ie 0.5 is noon)
 #manually convert to seconds and drop anything that doesnt have a co2 measurement
 biweekly <- biweekly %>% mutate(time_collected_psd = as.hms(as.numeric(time_collected_psd)*3600*24))
 #select all the calgas rows and create a datetime column
 biweekly <- biweekly %>% mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd)))
-biweekly$time_collected_psd <- format(ymd_hms(timeseries$time_collected_psd), "%H:%M:%S")
+#biweekly$time_collected_psd <- format(ymd_hms(biweekly$time_collected_psd), "%H:%M:%S")
 
 view(biweekly)
 #load in timeseries sheet

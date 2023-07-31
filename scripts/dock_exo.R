@@ -1,14 +1,25 @@
+#Makes time series and daily average plots of the dock data and the tank exo data
+#Finn Roach 
+
 require(pacman)
 p_load(tidyverse,
        janitor,
        lubridate,
-       gridExtra)
+       gridExtra,
+       plotly,
+       hms)
 
+#read in the dock data and convert to pdt 
 CTD <- read_delim("data/CTD_20230701_dock.csv")  %>%
   clean_names()
-CTD <- CTD %>% mutate(time_utc = with_tz(parse_date(time_utc), tz = "America/Los_Angeles"))
+CTD <- CTD %>% mutate(time_utc = as.POSIXct(time_utc, tz = "GMT", tryFormats = c("%m/%d/%Y %H:%M:%OS",
+                                                                     "%m/%d/%z %H:%M",
+                                                                     "%m/%d/%Y %H:%M",
+                                                                     "%m-%d-%z %H:%M")))
+view(CTD)                                                              
+CTD <- CTD %>% mutate(time_utc = with_tz(time_utc, tz = "America/Los_Angeles"))
 CTD <- CTD %>% rename("time_pdt" = "time_utc")
-
+view(CTD)
 exodata <- read_delim("data/exo_timeseries_raw.csv")
 exodata <- exodata %>% mutate(p_havg = rowMeans(exodata[, c('p_h1', 'p_h2')]),
                               datetime_pdt = force_tz(datetime_pdt, tz = "America/Los_Angeles")) 
@@ -22,9 +33,10 @@ exodata <- exodata %>% mutate(time = as_hms(time))
 CTD <- CTD %>% mutate(time = format(as.POSIXct(time_pdt), format = "%H:%M:%S")) 
 CTD <- CTD %>% mutate(time = as_hms(time))
 
+#cut out the recent bit of strange salinity data 
 exodata$sal_psu_Bare[8500:nrow(exodata)] <- NA
 
-
+#plot the timeseries 
 s <- ggplot() + 
   geom_line(data = exodata, aes(datetime_pdt, sal_psu_Bare, color = "Bare"))+
   geom_line(data = exodata, aes(datetime_pdt, sal_psu_Eelgrass, color = "Eelgrass"))+
@@ -51,7 +63,9 @@ do <- ggplot() +
   theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
   scale_color_manual(values=c("blue","brown","green"))
 #ggsave("do_timeseries.png", height = 4, width = 16)
+ggplotly(s)
 
+#create dataframes for the daily average plots and graph them 
 exotemp_bare <- exodata %>% 
   select(time,temp_c_Bare) %>% 
   group_by(time) %>% 
@@ -92,6 +106,8 @@ exodo_eel <- exodata %>%
   summarize(mean = mean(do_mgl_Eelgrass, na.rm = T), 
             sd = sd(do_mgl_Eelgrass, na.rm = T))
 
+view(exodo_eel)
+
 CTDdo <- CTD %>% 
   select(time,do_mg_l) %>% 
   group_by(time) %>% 
@@ -107,6 +123,7 @@ do_avg <- ggplot(data = exodo_bare, aes(time,mean, color = "Bare")) +
   geom_smooth() + labs(title="Mean daily dissolved oxygen", x="Time", y="Mean dissolved oxygen (mg/L)") + theme_set(theme_bw()) + 
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("blue","brown","green"))
 #ggsave("do_daily.png", height = 4, width = 6)
+
 
 exosal_bare <- exodata %>% 
   select(time,sal_psu_Bare) %>% 
@@ -139,18 +156,18 @@ s_avg <- ggplot(data = exosal_bare, aes(time,mean, color = "Bare")) +
 sal_plot<- grid.arrange(s,s_avg, widths = c(1, 0.4))
 temp_plot <- grid.arrange(t,t_avg, widths = c(1, 0.4))
 do_plot <- grid.arrange(do,do_avg, widths = c(1, 0.4))
-dock_exo <- grid.arrange(temp_plot, do_plot, sal_plot, nrow = 3)
 
+#plot everything on one grid 
+dock_exo <- grid.arrange(temp_plot, do_plot, sal_plot, nrow = 3)
 ggsave("dock_exo.png",dock_exo, height = 10, width = 16)
 
+#print the maxes of these graphs 
 print(CTDtemp$time[which.max(CTDtemp$mean)])
 print(exotemp_bare$time[which.max(exotemp_bare$mean)])
 print(exotemp_eel$time[which.max(exotemp_eel$mean)])
-
 print(CTDdo$time[which.max(CTDdo$mean)])
 print(exodo_bare$time[which.max(exodo_bare$mean)])
 print(exodo_eel$time[which.max(exodo_eel$mean)])
-
 print(CTDsal$time[which.max(CTDsal$mean)])
 print(exosal_bare$time[which.max(exosal_bare$mean)])
 print(exosal_eel$time[which.max(exosal_eel$mean)])

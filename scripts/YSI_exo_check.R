@@ -1,3 +1,7 @@
+#Script to check YSI readings against nearest time stamps of exo data 
+#plots linear regressions of YSI against exo for every parameter for the bare and eelgrass tanks 
+#Finn Roach 
+
 #load required packages
 require(pacman)
 p_load(tidyverse, 

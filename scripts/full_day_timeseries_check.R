@@ -1,5 +1,4 @@
-#check csense sensor data against grab sample data 
-#Finn Roach 
+#Code to plot a full day timeseries and do a linear regression against csense data from the nearest timestamps 
 
 require(pacman)
 p_load(tidyverse, 
@@ -10,40 +9,36 @@ p_load(tidyverse,
        lubridate,
        data.table)
 
-#load in biweekly datasheet 
-biweekly <- read_excel("data/Bi-weekly_Tank_Sampling_2023.xlsx",2) %>% 
-  select(contains("Sample ID"), contains("CO2 mean"), contains("CO2 stdev"), contains("Date"), contains("Time Collected (PSD)")) %>%
-  clean_names() %>% slice(4:n())
-#select only the rows corresponding to tanks 3 and 5
-biweekly <- biweekly %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id))  %>% drop_na(time_collected_psd)
-#for some reason the times in this sheet get loaded in as decimals (ie 0.5 is noon)
-#manually convert to seconds and drop anything that doesnt have a co2 measurement
-biweekly <- biweekly %>% mutate(time_collected_psd = as.hms(as.numeric(time_collected_psd)*3600*24))
-#select all the calgas rows and create a datetime column
-biweekly <- biweekly %>% mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd)))
-
 #load in timeseries sheet
 timeseries <- read_excel("data/Bi-weekly_Tank_Sampling_2023.xlsx",4) %>% 
   select(contains("Sample ID"), contains("CO2 mean"), contains("CO2 stdev"), contains("Date"), contains("Time Collected (PSD)")) %>%
-  clean_names()
+  clean_names() %>% slice(39:73)
+view(timeseries)
 #for some reason the times get saved with a random date attached, reformat to lose the date
 timeseries$time_collected_psd <- format(ymd_hms(timeseries$time_collected_psd), "%H:%M:%S")
 #select all the calgas rows and create a datetime column
 timeseries <- timeseries %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id)) %>%
   mutate(datetime = as.POSIXct(paste(parse_date(date), time_collected_psd))) 
 
-
-#merges and pivots the grab sample data 
-grabs <- rbind(timeseries, biweekly)
 #select the relevant columns, make sure the timezone is in PDT
 #also, multiply the CO2 means by 1.052 to account for the volume of gas used to create the headspace
-grabs <- grabs %>% select(sample_id, co2_mean, datetime) %>%
+grabs <- timeseries %>% select(sample_id, co2_mean, datetime) %>%
   mutate(datetime = force_tz(datetime, tz = "America/Los_Angeles"),
          co2_mean = 1.052*co2_mean)
 
 grabs <- grabs %>% pivot_wider(names_from = sample_id, values_from = co2_mean)
 grabs <- grabs %>% rename("co2_5"="5", "co2_3"="3")
 
+#plot the full day timeseries 
+ggplot()+ 
+  geom_point(data = grabs, aes(datetime, co2_5, color = "Bare"))+
+  geom_smooth(data = grabs, aes(datetime, co2_5, color="Bare"), method="loess")+
+  geom_point(data = grabs, aes(datetime, co2_3, color = "Eelgrass"))+
+  geom_smooth(data = grabs, aes(datetime, co2_3, color="Eelgrass"), method="loess")+
+  labs(title="CO2 timeseries", x="Time", y="CO2 (ppm)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  scale_color_manual(values=c("blue","darkgreen"))
+ggsave("full_day_timeseries.png")
 
 #reads in the csense data 
 csense <-  read_delim("data/csense_timeseries_raw.csv") %>% 
@@ -51,6 +46,8 @@ csense <-  read_delim("data/csense_timeseries_raw.csv") %>%
 
 #makes sure timezone is in PDT 
 csense$datetime_pdt <- force_tz(csense$datetime_pdt, tz = "America/Los_Angeles")
+
+#generate time matched dataframe to do linear regression of grab samples against csense 
 
 #converts data frames to data tables
 grabs <- data.table(grabs)
@@ -77,22 +74,26 @@ stacked <- rbind(aligned_5, aligned_3)
 
 #head(aligned_5)
 
+#plot everything 
+
 ggplot(aligned_5, aes(co2_ppm, co2))+ 
   geom_point()+
   geom_smooth(method="lm",color="blue")+
-  labs(title="CO2 Zero Density Eelgrass", x="CSense CO2 Conc (ppm)", y="Grab Sample CO2 Conc (ppm)") + 
-  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color="blue")+
+  labs(title="CO2 Zero Density Eelgrass", x="CSense CO2 Conc (ppm)", y="Grab Sample CO2 Conc (ppm)") +
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12)) + ylim(500,800)
 
-ggsave("co2_bare.png",width = 4, height = 4)
+ggsave("co2_bare_full_day.png",width = 4, height = 4)
 summary(lm(co2_ppm~co2, data=aligned_5))
 
 ggplot(aligned_3, aes(co2_ppm, co2))+ 
   geom_point()+
-  geom_smooth(method="lm",color="green")+
+  geom_smooth(method="lm",color="darkgreen")+
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color="darkgreen")+
   labs(title="CO2 High Density Eelgrass", x="CSense CO2 Conc (ppm)", y="Grab Sample CO2 Conc (ppm)") + 
   theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
 
-ggsave("co2_eelgrass.png", width = 4, height = 4)
+ggsave("co2_eelgrass_full_day.png", width = 4, height = 4)
 summary(lm(co2_ppm~co2, data=aligned_3))
 
 ggplot(stacked, aes(co2_ppm, co2))+
