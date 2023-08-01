@@ -41,18 +41,18 @@ make_ts_plot <- function(var, y_label){
   labs(x = "", y = y_label, color = "") + 
     theme(legend.position = "none")
   
-  p1 <- data %>% 
-    select(time, tank, {{var}}) %>% 
-    group_by(time, tank) %>% 
-    summarize(mean = mean({{var}}, na.rm = T), 
-              sd = sd({{var}}, na.rm = T)) %>% 
-    ggplot(aes(time, mean, color = tank)) + 
+  p1 <- df %>%
+    dplyr::select(time, tank, {{var}}) %>%
+    group_by(time, tank) %>%
+    summarize(mean = mean({{var}}, na.rm = T),
+              sd = sd({{var}}, na.rm = T)) %>%
+    ggplot(aes(time, mean, color = tank)) +
     geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd), alpha = 0.2) +
     geom_smooth()
-  
-  plot_grid(p0, p1, rel_widths = c(1, 0.4))
-}
 
+  plot_grid(p0, p1, rel_widths = c(1, 0.4))
+
+}
 
 temp_plot <- make_ts_plot(temp_c, "Temp (C)")
 sal_plot <- make_ts_plot(sal_psu, "Salinity")
@@ -62,7 +62,7 @@ do_plot <- make_ts_plot(do_mgl, "DO (mg/L)")
 
 # 4. Make pH time-series plots -------------------------------------------------
 
-df_ph <- data %>% 
+df_ph <- df %>% 
   select(datetime_pdt, time, tank, contains("p_h")) %>% 
   pivot_longer(cols = -c(datetime_pdt, time, tank)) %>% 
   mutate(name = case_when(name == "p_h1" ~ "Sensor 1", 
@@ -99,8 +99,8 @@ ggsave("figures/timeseries_check.png", width = 10, height = 12)
 
 # X. Import and format maintenance intervals -----------------------------------
 
-sensor_check_times <- read_excel("data/from_sharedrive/Bi-weekly_Tank_Sampling_2023.xlsx", sheet = 3) %>% 
-  slice(3:n()) %>% 
-  clean_names()
+# sensor_check_times <- read_excel("data/from_sharedrive/Bi-weekly_Tank_Sampling_2023.xlsx", sheet = 3) %>% 
+#   slice(3:n()) %>% 
+#   clean_names()
 
 

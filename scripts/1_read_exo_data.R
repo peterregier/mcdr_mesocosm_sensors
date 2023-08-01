@@ -38,7 +38,6 @@ check_encoding(ts_directory)
 ts_files <- tibble(file = list.files(path = ts_directory, full.names = T)) %>% 
   slice(3:n())
 
-
 df_bare <- ts_files %>% 
   filter(grepl("bare", file)) %>% 
   pull() %>% 
