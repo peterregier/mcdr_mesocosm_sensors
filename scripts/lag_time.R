@@ -69,16 +69,9 @@ lag_temp <- daily %>% mutate(bare_max = as.numeric(time_max_temp_c_Bare - time_m
                         eel_max = as.numeric(time_max_temp_c_Eelgrass - time_max_temp_deg_c)/3600,
                         bare_min = as.numeric(time_min_temp_c_Bare - time_min_temp_deg_c)/3600,
                         eel_min = as.numeric(time_min_temp_c_Eelgrass - time_min_temp_deg_c)/3600) %>% select(bare_max, eel_max, eel_min, bare_min, date) 
-view(lag_temp)
 lag_temp <- lag_temp %>% mutate(avg_eel = rowMeans(lag_temp[, c('eel_max','eel_min')]),
                                 avg_bare = rowMeans(lag_temp[, c('bare_max', 'bare_min')]))
-
-view(lag_temp)
 lag_temp <- lag_temp %>% select(eel_max, bare_max, date) %>% pivot_longer(c(-date),names_to = c("Var", ".value"), names_sep = "_")
-view(lag_temp)
-
-ggplot(lag_temp,aes(date, max, color = Var)) + 
-  geom_line()
 
 #now lets calculate daily residence time 
 #code to read in YSI data adapted from kay 
@@ -93,22 +86,30 @@ flow <- flow %>% mutate(sample_id = as.numeric(sample_id),
                         do_surface = as.numeric(do_surface),
                         t_surface = as.numeric(t_surface),
                         date = as.Date(date))
-flow <- flow %>% 
-  pivot_longer(c(-date, -sample_id, -do_surface, -t_surface),
+#shift old flow one day back so that the avg is the new flow set in morning on day 1 
+#and the flow it changes to the next day (ie add an NA at the beginning of the new flow column so it looks like the flows taken on same day)
+view(flow)
+flow$old_flow <- c(flow$old_flow[2:nrow(flow)], NA)
+flow <- flow %>% mutate(avg_flow = rowMeans(flow[,c('old_flow','new_flow')]))
+view(flow)
+flow <- flow %>% pivot_longer(c(-date, -sample_id, -do_surface, -t_surface, -avg_flow),
                names_to = c("Var", ".value"),
                names_sep = "_")
+view(flow)
 #read in the volume data from Excel
 volume <- read_excel("data/ResidenceTime_eelgrasstanks.xlsx") %>% clean_names() %>% slice(1:8)
 volume <- volume %>% rename("sample_id" = "tank") %>% select(sample_id, est_volume_l)
 residence <- merge(flow, volume, by = "sample_id")
 #create a residence time column 
-residence <- residence %>% mutate(restime = est_volume_l/flow)
+#USE AVERAGE FLOW instead of flow
+residence <- residence %>% mutate(restime = est_volume_l/avg_flow)
 residence <- residence %>% mutate(restime_hours = restime/60)
 residence <- residence %>% filter(grepl(paste(c(3,5), collapse='|'), sample_id)) 
+resdence <- residence %>% filter(grepl("old", Var))
 residence$sample_id[residence$sample_id == "3"] <- "eel" 
 residence$sample_id[residence$sample_id == "5"] <- "bare" 
 view(residence)
-#plot residence time and do for each tank 
+#plot residence time and max values for each tank 
 ggplot() + 
   geom_line(data = na.omit(residence), aes(date, restime_hours, color = "Residence"), linewidth= 1)+
   geom_point(data = na.omit(residence), aes(date, restime_hours, color = "Residence"))+
@@ -119,6 +120,9 @@ ggplot() +
   facet_wrap(~sample_id, 
              ncol= 2)
 
+
+ggsave("lag_temp_max_residence_series.png")
+
 resnew <- residence %>% filter(grepl("old", Var)) %>% filter(restime_hours<50)
 view(resnew)
 view(lag_temp)
@@ -127,13 +131,49 @@ lag_temp <- lag_temp %>% rename("sample_id" = "Var")
 resnew_lag_temp <- merge(resnew, lag_temp, by = c("date", "sample_id"), all = TRUE)
 view(resnew_lag_temp)
 
-ggplot(na.omit(resnew_lag_temp), aes(restime_hours,max))+ 
+ggplot(na.omit(resnew_lag_temp), aes(restime_hours,max, color = sample_id))+ 
   geom_point()+
-  geom_smooth(method="lm", color = "gold") +
+  geom_smooth(method="lm") +
   scale_x_continuous("Residence time (hours)")+
   scale_y_continuous("Lag time (hours)")+
   facet_wrap(~sample_id, ncol = 2) 
 
+ggsave("lag_temp_max_residence_lin.png", width = 8, height = 4)
+
+#calculate lag time based on the max temp differences between dock and bare and dock and eelgrass in hours
+lag_do <- daily %>% mutate(bare_max = as.numeric(time_max_do_mgl_Bare - time_max_do_mg_l)/3600,
+                             eel_max = as.numeric(time_max_do_mgl_Eelgrass - time_max_do_mg_l)/3600,
+                             bare_min = as.numeric(time_min_do_mgl_Bare - time_min_do_mg_l)/3600,
+                             eel_min = as.numeric(time_min_do_mgl_Eelgrass - time_min_do_mg_l)/3600) %>% select(bare_max, eel_max, eel_min, bare_min, date) 
+lag_do <- lag_do %>% mutate(eel_avg = rowMeans(lag_do[, c('eel_max','eel_min')]),
+                                bare_avg = rowMeans(lag_do[, c('bare_max', 'bare_min')]))
+lag_do <- lag_do %>% select(eel_max, bare_max, date) %>% pivot_longer(c(-date),names_to = c("Var", ".value"), names_sep = "_")
+
+#plot residence time and do for each tank 
+ggplot() + 
+  geom_line(data = na.omit(residence), aes(date, restime_hours, color = "Residence"), linewidth= 1)+
+  geom_point(data = na.omit(residence), aes(date, restime_hours, color = "Residence"))+
+  geom_line(data = na.omit(lag_do), aes(date, max, color = "Lag"), linewidth= 1)+
+  geom_point(data = na.omit(lag_do), aes(date,max, color = "Lag"))+
+  theme_set(theme_bw())+
+  scale_color_manual(values=c("gold", "royalblue"))+
+  facet_wrap(~sample_id, 
+             ncol= 2)
+
+ggsave("lag_do_max_residence_series.png")
 
 
+lag_do <- lag_do %>% rename("sample_id" = "Var")
+resnew_lag_do <- merge(resnew, lag_do, by = c("date", "sample_id"), all = TRUE)
+view(resnew_lag_do)
+
+
+ggplot(na.omit(resnew_lag_do), aes(restime_hours,max, color = sample_id))+ 
+  geom_point()+
+  geom_smooth(method="lm") +
+  scale_x_continuous("Residence time (hours)")+
+  scale_y_continuous("Lag time (hours)")+
+  facet_wrap(~sample_id, ncol = 2) 
+
+ggsave("lag_do_max_residence_lin.png", height = 4, width = 8)
 

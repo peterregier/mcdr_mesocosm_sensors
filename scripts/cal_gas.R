@@ -1,4 +1,5 @@
-#check the calgas readings over time 
+#check the calgas readings over time
+#Finn Roach
 
 require(pacman)
 p_load(tidyverse, 
