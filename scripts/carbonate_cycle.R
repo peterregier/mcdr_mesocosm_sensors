@@ -45,11 +45,22 @@ end2 <- "2023-07-17 10:57"
 
 #reads in the CORRECTED csense data 
 csense <-  read_delim("data/csense_timeseries_corrected.csv") %>% 
-  select(datetime_pdt, co2_ppm_bare, co2_ppm_eelgrass)
+  select(datetime_raw, co2_ppm_bare, co2_ppm_eelgrass)
 #makes sure timezone is in PDT and remove maintenance data 
+csense <- csense %>% mutate(datetime_pdt = as.POSIXct(datetime_raw)) 
+csense <- csense %>% mutate(datetime_pdt = force_tz(datetime_pdt, tz = "America/Los_Angeles"))
 csense[csense$datetime_pdt>start2&csense$datetime_pdt<end2,] <- NA
 csense <- csense %>% drop_na()
-csense$datetime_pdt <- force_tz(csense$datetime_pdt, tz = "America/Los_Angeles")
+csense <-  csense[csense$datetime_pdt>start1&csense$datetime_pdt<end1,]
+
+p <- ggplot() + 
+  geom_line(data = csense, aes(datetime_pdt, co2_ppm_bare, color = "Bare"))+
+  geom_line(data = csense, aes(datetime_pdt, co2_ppm_eelgrass, color = "Eelgrass"))+
+  labs(x="Time", y="CO2 (ppm)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  scale_color_manual(values=c("royalblue","forestgreen"))
+
+ggplotly(p)
 
 all <- merge(csense, exodata, by = "datetime_pdt", all = TRUE) %>% filter(sal_psu_Bare > 20) %>% filter(sal_psu_Eelgrass > 20) %>% drop_na()
 
@@ -116,77 +127,102 @@ ph <- ggplot() +
   theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
   scale_color_manual(values=c("royalblue","forestgreen")) 
 
+do<- ggplot() + 
+  geom_line(data = carbonate, aes(datetime_pdt, do_mgl_Bare, color = "Bare"))+
+  geom_line(data = carbonate, aes(datetime_pdt, do_mgl_Eelgrass, color = "Eelgrass"))+
+  labs(title="DO timeseries", x="Time", y="DO (mg/L)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  scale_color_manual(values=c("royalblue","forestgreen")) 
+
 #create dataframes for the daily average plots and graph them 
-exoco2_bare <- carbonate %>% 
+co2_bare <- carbonate %>% 
   select(time, co2_ppm_bare) %>% 
   group_by(time) %>% 
   summarize(mean = mean(co2_ppm_bare, na.rm = T), 
             sd = sd(co2_ppm_bare, na.rm = T))
-exoco2_eel <- carbonate %>% 
+co2_eel <- carbonate %>% 
   select(time, co2_ppm_eelgrass) %>% 
   group_by(time) %>% 
   summarize(mean = mean(co2_ppm_eelgrass, na.rm = T), 
             sd = sd(co2_ppm_eelgrass, na.rm = T))
-exoph_bare <- carbonate %>% 
+ph_bare <- carbonate %>% 
   select(time,ph_bare) %>% 
   group_by(time) %>% 
   summarize(mean = mean(ph_bare, na.rm = T), 
             sd = sd(ph_bare, na.rm = T))
-exoph_eel <- carbonate %>% 
+ph_eel <- carbonate %>% 
   select(time,ph_eel) %>% 
   group_by(time) %>% 
   summarize(mean = mean(ph_eel, na.rm = T), 
             sd = sd(ph_eel, na.rm = T))
-exodic_bare <- carbonate %>% 
+dic_bare <- carbonate %>% 
   select(time, dic_mol_L_bare) %>% 
   group_by(time) %>% 
   summarize(mean = mean(dic_mol_L_bare, na.rm = T), 
             sd = sd(dic_mol_L_bare, na.rm = T))
-exodic_eel <- carbonate %>% 
+dic_eel <- carbonate %>% 
   select(time, dic_mol_L_eel) %>% 
   group_by(time) %>% 
   summarize(mean = mean(dic_mol_L_eel, na.rm = T), 
             sd = sd(dic_mol_L_eel, na.rm = T))
-exoalk_bare <- carbonate %>% 
+alk_bare <- carbonate %>% 
   select(time, alk_mol_L_bare) %>% 
   group_by(time) %>% 
   summarize(mean = mean(alk_mol_L_bare, na.rm = T), 
             sd = sd(alk_mol_L_bare, na.rm = T))
-exoalk_eel <- carbonate %>% 
+alk_eel <- carbonate %>% 
   select(time, alk_mol_L_eel) %>% 
   group_by(time) %>% 
   summarize(mean = mean(alk_mol_L_eel, na.rm = T), 
             sd = sd(alk_mol_L_eel, na.rm = T))
+do_bare <- carbonate %>% 
+  select(time, do_mgl_Bare) %>% 
+  group_by(time) %>% 
+  summarize(mean = mean(do_mgl_Bare, na.rm = T), 
+            sd = sd(do_mgl_Bare, na.rm = T))
+do_eel <- carbonate %>% 
+  select(time, do_mgl_Eelgrass) %>% 
+  group_by(time) %>% 
+  summarize(mean = mean(do_mgl_Eelgrass, na.rm = T), 
+            sd = sd(do_mgl_Eelgrass, na.rm = T))
 
-ph_avg <- ggplot(data = exoph_bare, aes(time,mean, color = "Bare")) + 
-  geom_smooth(data = exoph_eel, aes(time, mean, color = "Eelgrass")) + 
-  geom_errorbar(data = exoph_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
-  geom_errorbar(data = exoph_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
+ph_avg <- ggplot(data = ph_bare, aes(time,mean, color = "Bare")) + 
+  geom_smooth(data = ph_eel, aes(time, mean, color = "Eelgrass")) + 
+  geom_errorbar(data = ph_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
+  geom_errorbar(data = ph_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
   geom_smooth() + labs(title="Mean daily pH", x="Time", y="Mean pH)") + theme_set(theme_bw()) + 
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("royalblue","forestgreen"))
-co2_avg <- ggplot(data = exoco2_bare, aes(time,mean, color = "Bare")) + 
-  geom_smooth(data = exoco2_eel, aes(time, mean, color = "Eelgrass")) + 
-  geom_errorbar(data = exoco2_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
-  geom_errorbar(data = exoco2_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
+co2_avg <- ggplot(data = co2_bare, aes(time,mean, color = "Bare")) + 
+  geom_smooth(data = co2_eel, aes(time, mean, color = "Eelgrass")) + 
+  geom_errorbar(data = co2_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
+  geom_errorbar(data = co2_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
   geom_smooth() + labs(title="Mean daily CO2", x="Time", y="Mean CO2 (ppm))") + theme_set(theme_bw()) + 
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("royalblue","forestgreen"))
-dic_avg <- ggplot(data = exodic_bare, aes(time,mean, color = "Bare")) + 
-  geom_smooth(data = exodic_eel, aes(time, mean, color = "Eelgrass")) + 
-  geom_errorbar(data = exodic_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
-  geom_errorbar(data = exodic_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
+dic_avg <- ggplot(data = dic_bare, aes(time,mean, color = "Bare")) + 
+  geom_smooth(data = dic_eel, aes(time, mean, color = "Eelgrass")) + 
+  geom_errorbar(data = dic_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
+  geom_errorbar(data = dic_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
   geom_smooth() + labs(title="Mean daily DIC", x="Time", y="Mean DIC (mol/L))") + theme_set(theme_bw()) + 
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("royalblue","forestgreen"))
-alk_avg <- ggplot(data = exoalk_bare, aes(time,mean, color = "Bare")) + 
-  geom_smooth(data = exoalk_eel, aes(time, mean, color = "Eelgrass")) + 
-  geom_errorbar(data = exoalk_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
-  geom_errorbar(data = exoalk_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
+alk_avg <- ggplot(data = alk_bare, aes(time,mean, color = "Bare")) + 
+  geom_smooth(data = alk_eel, aes(time, mean, color = "Eelgrass")) + 
+  geom_errorbar(data = alk_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
+  geom_errorbar(data = alk_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
   geom_smooth() + labs(title="Mean daily Alkalinity", x="Time", y="Alkalinity (mol/L))") + theme_set(theme_bw()) + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("royalblue","forestgreen"))
+do_avg <- ggplot(data = do_bare, aes(time,mean, color = "Bare")) + 
+  geom_smooth(data = do_eel, aes(time, mean, color = "Eelgrass")) + 
+  geom_errorbar(data = do_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
+  geom_errorbar(data = do_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +
+  geom_smooth() + labs(title="Mean daily DO", x="Time", y="DO (mg/L)") + theme_set(theme_bw()) + 
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("royalblue","forestgreen"))
 
 co2_plot<- grid.arrange(co2,co2_avg, widths = c(1, 0.4))
 ph_plot <- grid.arrange(ph,ph_avg, widths = c(1, 0.4))
 dic_plot <- grid.arrange(dic,dic_avg, widths = c(1, 0.4))
 alk_plot <- grid.arrange(alk,alk_avg, widths = c(1, 0.4))
+do_plot <- grid.arrange(do,do_avg, widths = c(1, 0.4))
+ggsave("do_plot.png", do_plot, height = 3.5, width = 16)
 
 #plot everything on one grid 
 carbonate_plots <- grid.arrange(co2_plot, ph_plot, dic_plot, alk_plot, nrow = 4)

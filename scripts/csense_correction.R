@@ -100,19 +100,8 @@ df_raw <- df_raw %>%
             co2_ppm_bare = mean_(co2_ppm_bare), 
             co2_ppm_eelgrass = mean_(co2_ppm_eelgrass))
 
+df_raw <- df_raw %>% mutate(datetime_pdt = as.character(datetime_pdt))
+
+view(df_raw)
 #save this dataframe as a new corrected csv file 
 write_csv(df_raw, "data/csense_timeseries_corrected.csv")
-
-#now let's plot some data to see how it looks 
-start1 <- "2023-07-13 00:00"
-end1 <- "2023-07-20 00:00"
-
-csense <-  df_raw[df_raw$datetime_pdt>start1&df_raw$datetime_pdt<end1,]
-
-ggplot() + 
-  geom_line(data = csense, aes(datetime_pdt, co2_ppm_bare, color = "Bare"))+
-  geom_line(data = csense, aes(datetime_pdt, co2_ppm_eelgrass, color = "Eelgrass"))+
-  labs(x="Time", y="CO2 (ppm)") + 
-  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
-  scale_color_manual(values=c("royalblue","forestgreen"))
-
