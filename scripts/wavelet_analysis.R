@@ -50,10 +50,30 @@ exodata <- exodata %>% select(datetime_pdt, temp_c, sal_psu, do_mgl, p_havg, tan
 exodata <- exodata %>% pivot_wider(names_from = tank, names_sep = "_", values_from = c(temp_c, sal_psu, do_mgl, p_havg))
 exodata <- exodata %>% mutate("date" = as.Date(trunc(datetime_pdt, 'days'))) %>% rename("datetime" = "datetime_pdt")
 #cut out the recent bit of strange salinity data 
-#exodata$sal_psu_Bare[8500:nrow(exodata)] <- NA
+#exodata$sal_psu_Bare[8568:12708] <- NA
+#exodata$sal_psu_Bare[15524:16088] <- NA
+#remove exo service dates
+start1 <- "2023-06-12 13:00:00"
+end1 <- "2023-06-12 16:00:00"
+start2 <- "2023-06-26 12:00:00"
+end2 <- "2023-06-26 15:00:00"
+start3 <- "2023-07-11 10:00"
+end3 <- "2023-07-12 10:00"
+start4 <- "2023-07-24 14:00"
+end4 <- "2023-07-28 12:00"
+start5 <- "2023-08-07 14:00"
+end5 <- "2023-08-07 17:00"
+start6 <- "2023-08-21 10:00"
+end6 <- "2023-08-21 13:00"
+exodata[exodata$datetime>start1&exodata$datetime<end1,2:ncol(exodata)] <- NA
+exodata[exodata$datetime>start2&exodata$datetime<end2,2:ncol(exodata)] <- NA
+exodata[exodata$datetime>start3&exodata$datetime<end3,2:ncol(exodata)] <- NA
+exodata[exodata$datetime>start4&exodata$datetime<end4,2:ncol(exodata)] <- NA
+exodata[exodata$datetime>start5&exodata$datetime<end5,2:ncol(exodata)] <- NA
+exodata[exodata$datetime>start6&exodata$datetime<end6,2:ncol(exodata)] <- NA
 
 #reads in the csense data 
-csense <-  read_delim("data/csense_timeseries_raw.csv") %>% 
+csense <-  read_delim("data/csense_timeseries_corrected.csv") %>% 
   select(datetime_pdt, co2_ppm_bare, co2_ppm_eelgrass) %>% slice(13160:n()) %>% drop_na()
 #makes sure timezone is in PDT 
 csense$datetime_pdt <- force_tz(csense$datetime_pdt, tz = "America/Los_Angeles") 
@@ -130,14 +150,15 @@ n=20
 p_temp_eel <- ggplot(df_temp_eel,aes(x=datetime,y=period,z=power)) + 
   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Cycle", title = "Eelgrass tank temperature") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date", title = "Eelgrass tank temperature") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.title.y=element_blank()) 
+p_temp_eel
 ggsave("wavelet_temp_eel.png", width = 5, height = 5)
 
 p_temp_CTD <- ggplot(df_temp_CTD,aes(x=datetime,y=period,z=power)) + 
   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Cycle", title = "Dock temperature") + 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock temperature") + 
   theme(plot.title = element_text(hjust = 0.5)) 
 p_temp_CTD
 ggsave("wavelet_temp_CTD.png", width = 5, height = 5)
@@ -145,23 +166,23 @@ ggsave("wavelet_temp_CTD.png", width = 5, height = 5)
 p_temp_bare <- ggplot(df_temp_bare,aes(x=datetime,y=period,z=power)) + 
   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Cycle", title = "Bare tank temperature") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",title = "Bare tank temperature") + 
+  theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
 p_temp_bare
 ggsave("wavelet_temp_bare.png", width = 5, height = 5)
 
 p_do_eel <- ggplot(df_do_eel,aes(x=datetime,y=period,z=power)) + 
   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Cycle", title = "Eelgrass tank DO") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",title = "Eelgrass tank DO") + 
+  theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
 p_do_eel
 ggsave("wavelet_do_eel.png", width = 5, height = 5)
 
 p_do_CTD <- ggplot(df_do_CTD,aes(x=datetime,y=period,z=power)) + 
   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Cycle", title = "Dock DO") + 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock DO") + 
   theme(plot.title = element_text(hjust = 0.5)) 
 p_do_CTD
 ggsave("wavelet_do_CTD.png", width = 5, height = 5)
@@ -169,10 +190,21 @@ ggsave("wavelet_do_CTD.png", width = 5, height = 5)
 p_do_bare <- ggplot(df_do_bare,aes(x=datetime,y=period,z=power)) + 
   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Cycle", title = "Bare tank DO") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date", title = "Bare tank DO") + 
+  theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
 p_do_bare
 ggsave("wavelet_do_bare.png", width = 5, height = 5)
+
+all_wavelet <- grid.arrange(p_temp_CTD, p_temp_bare, p_temp_eel, p_do_CTD, p_do_bare, p_do_eel, nrow = 2)
+ggsave("all_wavelet.png", all_wavelet, width = 15, height = 10)
+
+p_sal_CTD <- ggplot(df_sal_CTD,aes(x=datetime,y=period,z=power)) + 
+  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
+  scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock salinity") + 
+  theme(plot.title = element_text(hjust = 0.5)) 
+p_sal_CTD
+ggsave("wavelet_sal_CTD.png", width = 5, height = 5)
 
 #old wavelet analysis and visualization code 
 co2_bare <- analyze.wavelet(my.data = csense,  my.series = "co2_ppm_bare", dt = 1/12)

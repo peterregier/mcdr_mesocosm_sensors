@@ -106,8 +106,7 @@ CTDtemp <- CTD %>%
   group_by(time) %>% 
   summarize(mean = mean(temp_deg_c, na.rm = T), 
             sd = sd(temp_deg_c, na.rm = T)) 
-
-ggplot(data = exotemp_bare_1, aes(time,mean, color = "Short residence time")) + 
+p_temp_bare <- ggplot(data = exotemp_bare_1, aes(time,mean, color = "Short residence time")) + 
   geom_smooth(data = exotemp_bare_2, aes(time, mean, color = "Long residence time")) + 
   geom_smooth(data = CTDtemp, aes(time, mean, color = "Dock")) + 
   geom_errorbar(data = exotemp_bare_1, aes(ymin = mean - sd, ymax = mean + sd, color = "Short residence time"), alpha = 0.2) +
@@ -131,7 +130,7 @@ exotemp_eel_1 <- exores %>% filter(grepl("1", eel_bin)) %>%
   summarize(mean = mean(temp_c_Eelgrass, na.rm = T), 
             sd = sd(temp_c_Eelgrass, na.rm = T))
 
-ggplot(data = exotemp_eel_1, aes(time,mean, color = "Short residence time")) + 
+p_temp_eel <- ggplot(data = exotemp_eel_1, aes(time,mean, color = "Short residence time")) + 
   geom_smooth(data = exotemp_eel_2, aes(time, mean, color = "Long residence time")) +
   geom_smooth(data = CTDtemp, aes(time, mean, color = "Dock")) + 
   geom_errorbar(data = exotemp_eel_1, aes(ymin = mean - sd, ymax = mean + sd, color = "Short residence time"), alpha = 0.2) +
@@ -162,7 +161,7 @@ CTDdo <- CTD %>%
   summarize(mean = mean(do_mg_l, na.rm = T), 
             sd = sd(do_mg_l, na.rm = T)) 
 
-ggplot(data = exodo_bare_1, aes(time,mean, color = "Short residence time")) + 
+p_do_bare <- ggplot(data = exodo_bare_1, aes(time,mean, color = "Short residence time")) + 
   geom_smooth(data = exodo_bare_2, aes(time, mean, color = "Long residence time")) +
   geom_smooth(data = CTDdo, aes(time, mean, color = "Dock")) + 
   geom_errorbar(data = exodo_bare_1, aes(ymin = mean - sd, ymax = mean + sd, color = "Short residence time"), alpha = 0.2) +
@@ -186,7 +185,7 @@ exodo_eel_1 <- exores %>% filter(grepl("1", eel_bin)) %>%
   summarize(mean = mean(do_mgl_Eelgrass, na.rm = T), 
             sd = sd(do_mgl_Eelgrass, na.rm = T))
 
-ggplot(data = exodo_eel_1, aes(time,mean, color = "Short residence time")) + 
+p_do_eel <- ggplot(data = exodo_eel_1, aes(time,mean, color = "Short residence time")) + 
   geom_smooth(data = exodo_eel_2, aes(time, mean, color = "Long residence time")) +
   geom_smooth(data = CTDdo, aes(time, mean, color = "Dock")) + 
   geom_errorbar(data = exodo_eel_1, aes(ymin = mean - sd, ymax = mean + sd, color = "Short residence time"), alpha = 0.2) +
@@ -195,6 +194,10 @@ ggplot(data = exodo_eel_1, aes(time,mean, color = "Short residence time")) +
   geom_smooth() + labs(title="Mean daily DO eelgrass tank", x="Time", y="Dissolved oxygen (mgl)") + theme_set(theme_bw()) + 
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("maroon", "darkgreen","lightgreen"))
 ggsave("do_eel_binned.png", height = 4, width = 6)
+
+all_binning <- grid.arrange(p_temp_bare, p_do_bare, p_temp_eel, p_do_eel, nrow =2)
+ggsave("all_residence_binning.png", all_binning, width =15, height = 10)
+
 
 
 

@@ -88,25 +88,35 @@ metab_longer <- metab_all %>%
 
 my_comparisons = list(c("bare","eel"), c("bare","dock"), c("dock","eel"))
 
-ggboxplot(na.omit(metab_longer), "Environment", "NEM", fill = "Environment", palette = c("forestgreen","royalblue","maroon")) + 
+NEM <- ggboxplot(na.omit(metab_longer), "Environment", "NEM", fill = "Environment", palette = c("forestgreen","royalblue","maroon")) + 
   labs(y = "NEM (mmol m-2 d-1)", title = "Net metabolism") + 
   stat_compare_means(comparisons = my_comparisons, label = "p.signif", paired = TRUE) + 
   theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
 ggsave("net_metabolism.png", height = 5, width =5 )
 
 
-ggboxplot(na.omit(metab_longer), "Environment", "rt", fill = "Environment", palette = c("forestgreen","royalblue","maroon")) + 
+TR <- ggboxplot(na.omit(metab_longer), "Environment", "rt", fill = "Environment", palette = c("forestgreen","royalblue","maroon")) + 
   labs(y = "Total respiration (mmol m-2 d-1)", title = "Total Respiration") + 
-  stat_compare_means(comparisons = my_comparisons, label = "p.signif", paired = TRUE) + 
+  stat_compare_means(comparisons = my_comparisons, test = anova, paired = TRUE, label = "p.signif") + 
   theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))
-
+TR
 
 ggsave("total_respiration.png", height = 5, width =5 )
 
 
-ggboxplot(na.omit(metab_longer), "Environment", "pg", fill = "Environment", palette = c("forestgreen","royalblue","maroon")) + 
+GP <- ggboxplot(na.omit(metab_longer), "Environment", "pg", fill = "Environment", palette = c("forestgreen","royalblue","maroon")) + 
   labs(y = "Gross production (mmol m-2 d-1)", title = "Gross Production") + 
-  stat_compare_means(comparisons = my_comparisons, label = "p.signif", paired = TRUE) + 
+  stat_compare_means(comparisons = my_comparisons, paired = TRUE, test = anova, label = "p.signif") + 
   theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12)) 
+GP
+view(metab_longer)
+print(t.test(pg~Environment,metab_longer,paired = TRUE))
 
 ggsave("gross_production.png", height = 5, width = 5)
+
+view(metab_all)
+print(median(metab_all$eel_NEM))
+print(median(metab_all$bare_NEM))
+
+all_ecometab <- grid.arrange(GP, TR, NEM, nrow = 1)
+ggsave("all_ecometab.png", all_ecometab, width = 15, height = 5)

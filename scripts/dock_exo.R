@@ -34,6 +34,17 @@ exodata <- exodata %>% mutate(time = as_hms(time))
 #cut out the recent bit of strange salinity data 
 #exodata$sal_psu_Bare[8500:nrow(exodata)] <- NA
 
+#code to check pH sensors, one was acting up recently
+#startph <- "2023-08-08 00:00"
+#endph <- "2023-08-21 00:00"
+#ph_check <- exodata[exodata$datetime_pdt>startph&exodata$datetime_pdt<endph,]
+#p_ph_check <- ggplot() + 
+  #geom_line(data = ph_check, aes(datetime_pdt, p_h1_Bare, linetype = "1")) + 
+  #geom_line(data = ph_check, aes(datetime_pdt, p_h2_Bare, linetype = "2")) +
+  #labs(x = "Date", y = "pH", title = "pH")
+#ggsave("ph_check_august_bare.png", p_ph_check)
+#ggplotly(p_ph_check)
+
 #CORRECTIONS
 #offset for 5/29 to 7/25 based on calibration pre-clean checks  
 eel_sal_offset <-2.08
@@ -49,17 +60,42 @@ exodata <- exodata %>% mutate(ph_eel = c(p_h2_Eelgrass[1:16096], p_havg_Eelgrass
                               sal_psu_Eelgrass = c(sal_psu_Eelgrass[1:16644] + eel_sal_offset, sal_psu_Eelgrass[16645:nrow(exodata)])) %>% 
   select(-p_havg_Bare, -p_havg_Eelgrass, -p_h1_Bare, -p_h1_Eelgrass, -p_h2_Bare, -p_h2_Eelgrass)
 
-view(exodata)
-#plot the timeseries 
+#remove weird salinity data
 exodata$sal_psu_Bare[8568:12708] <- NA
 exodata$sal_psu_Bare[15524:16088] <- NA
+
+#remove exo service dates
+start1 <- "2023-06-12 13:00:00"
+end1 <- "2023-06-12 16:00:00"
+start2 <- "2023-06-26 12:00:00"
+end2 <- "2023-06-26 15:00:00"
+start3 <- "2023-07-11 10:00"
+end3 <- "2023-07-12 10:00"
+start4 <- "2023-07-24 14:00"
+end4 <- "2023-07-28 12:00"
+start5 <- "2023-08-07 14:00"
+end5 <- "2023-08-07 17:00"
+start6 <- "2023-08-21 10:00"
+end6 <- "2023-08-21 13:00"
+exodata[exodata$datetime_pdt>start1&exodata$datetime_pdt<end1,2:ncol(exodata)] <- NA
+exodata[exodata$datetime_pdt>start2&exodata$datetime_pdt<end2,2:ncol(exodata)] <- NA
+exodata[exodata$datetime_pdt>start3&exodata$datetime_pdt<end3,2:ncol(exodata)] <- NA
+exodata[exodata$datetime_pdt>start4&exodata$datetime_pdt<end4,2:ncol(exodata)] <- NA
+exodata[exodata$datetime_pdt>start5&exodata$datetime_pdt<end5,2:ncol(exodata)] <- NA
+exodata[exodata$datetime_pdt>start6&exodata$datetime_pdt<end6,2:ncol(exodata)] <- NA
+
+#start and end dates for these plots: 
+start <- "2023-05-29 15:25:00"
+end <- "2023-08-07 08:30:00"
+exodata <- exodata[exodata$datetime_pdt>start&exodata$datetime_pdt<end,]
+CTD <- CTD[CTD$time_pdt>start&CTD$time_pdt<end,]
 
 s <- ggplot() + 
   geom_line(data = exodata, aes(datetime_pdt, sal_psu_Bare, color = "Bare"))+
   geom_line(data = exodata, aes(datetime_pdt, sal_psu_Eelgrass, color = "Eelgrass"))+
   geom_line(data = CTD, aes(time_pdt, salinity_ppt, color = "Dock")) + 
   labs(title="Salinity timeseries", x="Time", y="Salinity (psu)") + 
-  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12), legend.position = "none")+
   scale_color_manual(values=c("royalblue","maroon","forestgreen")) + ylim(28,32)
 #ggsave("salinity_timeseries.png", height = 4, width = 16)
 ggplotly(s)
@@ -69,18 +105,16 @@ t <- ggplot() +
   geom_line(data = exodata, aes(datetime_pdt, temp_c_Eelgrass, color = "Eelgrass"))+
   geom_line(data = CTD, aes(time_pdt, temp_deg_c, color = "Dock")) + 
   labs(title="Temperature timeseries", x="Time", y="Temperature (C)") + 
-  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12), legend.position = "none")+
   scale_color_manual(values=c("royalblue","maroon","forestgreen"))
 #ggsave("temp_timeseries.png", height = 4, width = 16)
-ggplotly(t)
 
-view(CTD)
 do <- ggplot() + 
   geom_line(data = exodata, aes(datetime_pdt, do_mgl_Bare, color = "Bare"))+
   geom_line(data = exodata, aes(datetime_pdt, do_mgl_Eelgrass, color = "Eelgrass"))+
   geom_line(data = CTD, aes(time_pdt, do_mg_l, color = "Dock")) + 
   labs(title="Dissolved oxygen timeseries", x="Time", y="DO (mg/L)") + 
-  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12), legend.position = "none")+
   scale_color_manual(values=c("royalblue","maroon","forestgreen")) + ylim(0,14)
 ggplotly(do)
 #ggsave("do_timeseries.png", height = 4, width = 16)
@@ -136,7 +170,6 @@ exodo_eel <- exodata %>%
   summarize(mean = mean(do_mgl_Eelgrass, na.rm = T), 
             sd = sd(do_mgl_Eelgrass, na.rm = T))
 
-view(exodo_eel)
 
 CTDdo <- CTD %>% 
   select(time,do_mg_l) %>% 
@@ -207,15 +240,19 @@ ph_avg <- ggplot(data = exoph_bare, aes(time,mean, color = "Bare")) +
   theme(plot.title = element_text(hjust = 0.5, size = 12)) + scale_color_manual(values=c("royalblue","maroon","forestgreen"))
 #ggsave("salinity_daily.png",s_avg, height = 4, width = 6)
 
-sal_plot<- grid.arrange(s,s_avg, widths = c(1, 0.4))
-temp_plot <- grid.arrange(t,t_avg, widths = c(1, 0.4))
-do_plot <- grid.arrange(do,do_avg, widths = c(1, 0.4))
-ph_plot <- grid.arrange(ph,ph_avg, widths = c(1, 0.4))
-ggsave("ph_exo.png",ph_plot, height = 4, width = 15)
+sal_plot<- grid.arrange(s,s_avg, widths = c(1, 0.5))
+temp_plot <- grid.arrange(t,t_avg, widths = c(1, 0.5))
+do_plot <- grid.arrange(do,do_avg, widths = c(1, 0.5))
+ph_plot <- grid.arrange(ph,ph_avg, widths = c(1, 0.5))
+ggsave("ph_exo.png",ph_plot, height = 4, width = 14)
 
 #plot everything on one grid 
 dock_exo <- grid.arrange(temp_plot, do_plot, sal_plot, nrow = 3)
-ggsave("dock_exo.png",dock_exo, height = 10, width = 16)
+ggsave("dock_exo.png",dock_exo, height = 10, width = 14)
+temp_plot <- grid.arrange(t,t_avg, widths = c(0.8, 0.5))
+do_plot <- grid.arrange(do,do_avg, widths = c(0.8, 0.5))
+ggsave("do.png",do_plot, height = 4, width = 12)
+ggsave("temp.png",temp_plot, height = 4, width = 12)
 
 #print the maxes of these graphs 
 print(CTDtemp$time[which.max(CTDtemp$mean)])

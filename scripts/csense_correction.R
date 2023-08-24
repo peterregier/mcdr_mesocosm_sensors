@@ -72,8 +72,9 @@ cal_eel <- df_raw[df_raw$datetime>eel_start&df_raw$datetime<eel_end,] %>% select
 #visualize the calibrations
 ggplot(cal_bare, aes(datetime, SEVoltage_1)) + geom_line()
 ggplot(cal_eel, aes(datetime, SEVoltage_2)) + geom_line()
+view(cal_bare)
 #select the most stable part of these curves
-cal_bare <- cal_bare %>% slice(14:18)
+cal_bare <- cal_bare %>% slice(14:16)
 cal_eel <- cal_eel %>% slice(15:20)
 
 #from the above calibration datasets we get voltages for 410 ppm cal gas 
@@ -100,8 +101,24 @@ df_raw <- df_raw %>%
             co2_ppm_bare = mean_(co2_ppm_bare), 
             co2_ppm_eelgrass = mean_(co2_ppm_eelgrass))
 
+#plot some data! 
+start <- "2023-08-07 17:00"
+end <- "2023-08-14 8:00"
+
+example <- df_raw[df_raw$datetime_pdt>start&df_raw$datetime_pdt<end,]
+
+p <- ggplot() + 
+  geom_line(data = example, aes(datetime_pdt, co2_ppm_bare, color = "Bare"))+
+  geom_line(data = example, aes(datetime_pdt, co2_ppm_eelgrass, color = "Eelgrass"))+
+  labs(title="CO2 timeseries", x="Time", y="CO2 (ppm)") + 
+  theme_set(theme_bw()) + theme(plot.title = element_text(hjust = 0.5, size = 12))+
+  scale_color_manual(values=c("royalblue","forestgreen"))
+
+ggplotly(p)
+
+
+#convert datetime to a character so timezones dont get messed up 
 df_raw <- df_raw %>% mutate(datetime_pdt = as.character(datetime_pdt))
 
-view(df_raw)
 #save this dataframe as a new corrected csv file 
 write_csv(df_raw, "data/csense_timeseries_corrected.csv")
