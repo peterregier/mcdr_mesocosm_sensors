@@ -64,6 +64,7 @@ plot_variable <- function(var, y_label){
     geom_line()
 }
 
+plot_variable(temp_c)
 plot_variable(do_perc) + geom_hline(yintercept = 100)
 
 # Write out data 

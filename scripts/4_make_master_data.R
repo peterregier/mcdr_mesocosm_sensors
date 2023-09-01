@@ -45,7 +45,7 @@ df <- full_join(exo_raw, csense, by = c("datetime_pdt", "tank")) %>%
 master <- df %>% 
   mutate(datetime_pdt = as.character(datetime_pdt))
 
-write_csv(master, "data/master_sensor_data.csv")
+write_csv(master, "data/master_sensor_data_v0.csv")
 
 
 

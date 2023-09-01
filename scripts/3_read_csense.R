@@ -2,7 +2,7 @@
 ## SEVolt1 is in the Bare tank (Tank #5)
 ## SEVolt2 is in the Eelgrass tank (Tank #3)
 ##
-## 2023-06-20
+## 2023-06-20 (updated 8/31/23)
 ## Peter Regier
 ##
 # ########### #
@@ -35,36 +35,28 @@ files <- list.files(raw_filepath, pattern = "CR6Series_Table1", full.names = T)
 read_cr6 <- function(file){
   df_raw <- read_delim(file, skip = 1) %>% 
     slice(3:n()) %>% 
-    mutate(SEVolt_1 = as.numeric(SEVolt_1), 
-           SEVolt_2 = as.numeric(SEVolt_2)) %>% 
-    mutate(datetime_1min = force_tz(parsedate::parse_date(TIMESTAMP), tzone = common_tz)) %>% 
-    mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
-    mutate(datetime_raw = as.character(datetime)) %>% 
-    select(datetime, datetime_raw, contains("SEVolt_"))  %>% 
-    group_by(datetime) %>% 
-    summarize(co2_ppm_bare = mean_(SEVolt_1), 
-              co2_ppm_eelgrass = mean_(SEVolt_2),
-              sd_ppm_bare = sd_(SEVolt_1), 
-              sd_ppm_eelgrass = sd_(SEVolt_2)) 
+     mutate(SEVolt_1 = as.numeric(SEVolt_1), 
+            SEVolt_2 = as.numeric(SEVolt_2), 
+            SEVoltage_1 = as.numeric(SEVoltage_1), 
+            SEVoltage_2 = as.numeric(SEVoltage_2)) %>% 
+     mutate(datetime_1min = force_tz(parsedate::parse_date(TIMESTAMP), tzone = common_tz)) %>% 
+     mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
+     mutate(datetime_raw = as.character(datetime)) %>% 
+     #select(datetime, datetime_raw, contains("SEVolt_"))  %>% 
+     group_by(datetime) %>% 
+     summarize(co2_ppm_bare = mean_(SEVolt_1), 
+               co2_ppm_eelgrass = mean_(SEVolt_2),
+               sd_ppm_bare = sd_(SEVolt_1), 
+               sd_ppm_eelgrass = sd_(SEVolt_2), 
+               co2_mv_bare = mean_(SEVoltage_1), 
+               co2_mv_eelgrass = mean_(SEVoltage_2),
+               sd_mv_bare = sd_(SEVoltage_1), 
+               sd_mv_eelgrass = sd_(SEVoltage_2)) 
 }
 
 df_raw <- files %>% 
   map(read_cr6) %>% 
   bind_rows()
-
-df_raw <- read_delim(list.files(raw_filepath, pattern = "CR6Series_Table1", full.names = T), skip = 1) %>% 
-  slice(3:n()) %>% 
-    mutate(SEVolt_1 = as.numeric(SEVolt_1), 
-         SEVolt_2 = as.numeric(SEVolt_2)) %>% 
-  mutate(datetime_1min = force_tz(parsedate::parse_date(TIMESTAMP), tzone = common_tz)) %>% 
-  mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
-  select(datetime, contains("SEVolt_"))  %>% 
-  group_by(datetime) %>% 
-  summarize(datetime_raw = as.character(first(datetime)), 
-            co2_ppm_bare = mean_(SEVolt_1), 
-            co2_ppm_eelgrass = mean_(SEVolt_2),
-            sd_ppm_bare = sd_(SEVolt_1), 
-            sd_ppm_eelgrass = sd_(SEVolt_2)) 
 
 
 # 3. Make plots to explore data ------------------------------------------------
@@ -88,4 +80,3 @@ df_final <- df_raw %>%
   select(-datetime)
 
 write_csv(df_final, "data/csense_timeseries_raw.csv")
-
