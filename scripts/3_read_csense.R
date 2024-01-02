@@ -61,12 +61,23 @@ df_raw <- files %>%
 
 # 3. Make plots to explore data ------------------------------------------------
 
-df_raw %>% 
-  select(datetime, contains("co2")) %>% 
+ggplotly(df_raw %>% 
+  select(datetime, contains("co2_ppm")) %>% 
   pivot_longer(cols = -c(contains("datetime"))) %>% 
 ggplot(aes(datetime, value, color = name)) + 
-  geom_line()
+  geom_line())
 
+## The time-frame we want is early August till early September
+df_trim <- df_raw %>% 
+  filter(datetime > "2023-08-04" & 
+           datetime < "2023-09-02") 
+
+df_trim %>% 
+  select(datetime, contains("co2_ppm")) %>% 
+  pivot_longer(cols = -c(contains("datetime"))) %>% 
+  ggplot(aes(datetime, value, color = name)) + 
+  geom_line() + 
+  geom_hline(yintercept = 420)
 
 ### Some sort of stuff will need to go in the middle of this script, TBD depending
 ### on how EXO deployments are structured. But for now, leaving blank and exporting
@@ -74,9 +85,15 @@ ggplot(aes(datetime, value, color = name)) +
 
 # 4. Write out data ------------------------------------------------------------
 
+df_trim <- df_trim %>% 
+  mutate(datetime_pdt = as.character(datetime)) %>% 
+  relocate(datetime_pdt) %>% 
+  select(-datetime)
+write_csv(df_trim, "data/231210_csense_trimmed_timeseries_raw.csv")
+
+
 df_final <- df_raw %>% 
   mutate(datetime_pdt = as.character(datetime)) %>% 
   relocate(datetime_pdt) %>% 
   select(-datetime)
-
 write_csv(df_final, "data/csense_timeseries_raw.csv")

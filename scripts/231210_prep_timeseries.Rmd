@@ -1,0 +1,185 @@
+---
+title: "Prepare selected time-series"
+output: html_document
+date: "2023-12-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,
+                      message = F,
+                      warning = F)
+```
+
+### Goal
+
+Because of the many complications from our different deployment strategies, we're only using a small chunk of the full dataset. Specifically, we want to use data from after the pumped heads were installed (XX/XX) and before one of the pumped heads failed (XX/XX).
+
+First, let's bring in our CO2 data and identify the datetimes where we want our datasets to start and end.
+
+
+```{r Setup}
+
+## Location of raw EXO datasets
+csense_filepath = "../data/csense/timeseries"
+
+## Load constants
+source("../scripts/0_constants.R")
+
+```
+
+
+```{r Import raw csense}
+
+## Set threshold for flagging CO2 based on standard deviation
+co2_sd_threshold = 50 #if the sd > threshold, cull
+
+## Helper function
+mean_ <- function(var){mean({{var}}, na.rm = T)}
+sd_ <- function(var){sd({{var}}, na.rm = T)}
+
+csense_files <- list.files(csense_filepath, pattern = "CR6Series_Table1", full.names = T)
+
+read_cr6 <- function(file){
+  df_raw <- read_delim(file, skip = 1) %>% 
+    slice(3:n()) %>% 
+     mutate(SEVolt_1 = as.numeric(SEVolt_1), 
+            SEVolt_2 = as.numeric(SEVolt_2), 
+            SEVoltage_1 = as.numeric(SEVoltage_1), 
+            SEVoltage_2 = as.numeric(SEVoltage_2)) %>% 
+     mutate(datetime_1min = force_tz(parsedate::parse_date(TIMESTAMP), tzone = common_tz)) %>% 
+     mutate(datetime = round_date(datetime_1min, unit = time_interval)) %>% 
+     mutate(datetime_raw = as.character(datetime)) %>% 
+     #select(datetime, datetime_raw, contains("SEVolt_"))  %>% 
+     group_by(datetime) %>% 
+     summarize(co2_ppm_bare = mean_(SEVolt_1), 
+               co2_ppm_eelgrass = mean_(SEVolt_2),
+               sd_ppm_bare = sd_(SEVolt_1), 
+               sd_ppm_eelgrass = sd_(SEVolt_2), 
+               co2_mv_bare = mean_(SEVoltage_1), 
+               co2_mv_eelgrass = mean_(SEVoltage_2),
+               sd_mv_bare = sd_(SEVoltage_1), 
+               sd_mv_eelgrass = sd_(SEVoltage_2)) 
+}
+
+csense_raw <- csense_files %>% 
+  map(read_cr6) %>% 
+  bind_rows()
+
+csense_start <- "2023-07-28"
+csense_end <- "2023-09-02"
+
+csense_trim_start <- csense_raw %>% 
+  filter(datetime >= csense_start)
+
+csense_trim <- csense_trim_start %>% 
+  filter(datetime <= csense_end)
+```
+
+### Raw C-sense data {.tabset}
+
+#### All data
+
+```{r}
+csense_raw %>% 
+  select(datetime, contains("co2_ppm")) %>% 
+  pivot_longer(cols = -c(contains("datetime"))) %>% 
+ggplot(aes(datetime, value, color = name)) + 
+  geom_line()
+```
+
+#### Period of interest
+
+Based on plotly, things go off the rails for the eelgrass tank sometime on 9/2, so we'll use that to cut the end.
+
+```{r}
+csense_trim_start %>% 
+  select(datetime, contains("co2_ppm")) %>% 
+  pivot_longer(cols = -c(contains("datetime"))) %>% 
+ggplot(aes(datetime, value, color = name)) + 
+  geom_line()
+```
+
+#### Final cut
+
+```{r}
+csense_trim %>% 
+  select(datetime, contains("co2_ppm")) %>% 
+  pivot_longer(cols = -c(contains("datetime"))) %>% 
+ggplot(aes(datetime, value, color = name)) + 
+  geom_line()
+```
+
+###
+
+### Remaining tasks for CO2
+
+1. Figure out how to correct
+2. download final CO2 grab sample data
+3. Match with available CO2 grab samples
+4. If that's not a lot, take all CO2 grab samples from periods with trustworthy CO2 data
+
+
+### Pull in EXO data
+
+Based on the timeframe we're using for C-Sense, let's pull in EXO datasets for the relevant time-period
+
+```{r EXO prep}
+
+exo_directory = "../data/exo/timeseries"
+
+## Check file formats (script needs UTF-8) - should be empty!
+check_encoding(exo_directory) 
+
+exo_files <- tibble(file = list.files(path = exo_directory, full.names = T)) %>% 
+  filter(grepl("230807|230821|230926", file))
+
+```
+
+```{r read EXO data}
+df_bare <- exo_files %>% 
+  filter(grepl("bare", file)) %>% 
+  pull() %>% 
+  map(read_exo) %>% 
+  bind_rows() %>% 
+  rename("p_h1" = p_h_22, "p_h2" = p_h_23)
+
+df_eelgrass <- exo_files %>% 
+  filter(grepl("eelgrass", file)) %>% 
+  pull() %>% 
+  map(read_exo) %>% 
+  bind_rows() %>% 
+  rename("p_h1" = p_h_21, "p_h2" = p_h_22)
+
+exo <- bind_rows(df_bare %>% mutate(tank = "Bare"), 
+                df_eelgrass %>% mutate(tank = "Eelgrass")) 
+
+exo_trim <- exo %>% 
+  filter(datetime >= csense_start) %>% 
+  filter(datetime <= csense_end)
+
+ggplot(exo_trim, aes(datetime, p_h1, color = tank)) + 
+  geom_line()
+  
+
+```
+
+```{r}
+
+csense_formatted <- csense_trim %>% 
+  select(datetime, contains("co2_ppm")) %>% 
+  pivot_longer(cols = -c(contains("datetime"))) %>% 
+  mutate(tank = str_to_sentence(str_remove_all(name, "co2_ppm_"))) %>% 
+  rename("co2_ppm" = value) %>% 
+  select(-name)
+
+df <- left_join(exo_trim, 
+                csense_formatted, 
+                by = c("datetime", "tank"))
+  
+
+ggplot(df, aes(p_h1, co2_ppm, color = tank)) + 
+  geom_point()
+```
+
+
+
