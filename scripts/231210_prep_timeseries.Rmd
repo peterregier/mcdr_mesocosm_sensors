@@ -65,7 +65,8 @@ csense_raw <- csense_files %>%
   map(read_cr6) %>% 
   bind_rows()
 
-csense_start <- "2023-07-28"
+#csense_start <- "2023-07-28"
+csense_start <- "2023-06-01" # changing because we want to capture more events for correlations
 csense_end <- "2023-09-02"
 
 csense_trim_start <- csense_raw %>% 
@@ -131,7 +132,7 @@ exo_directory = "../data/exo/timeseries"
 check_encoding(exo_directory) 
 
 exo_files <- tibble(file = list.files(path = exo_directory, full.names = T)) %>% 
-  filter(grepl("230807|230821|230926", file))
+  filter(grepl("230626|230724|230728|230807|230821|230926", file))
 
 ```
 
@@ -166,20 +167,25 @@ ggplot(exo_trim, aes(datetime, p_h1, color = tank)) +
 ```{r}
 
 csense_formatted <- csense_trim %>% 
-  select(datetime, contains("co2_ppm")) %>% 
+  select(datetime, 
+         #contains("co2_ppm"), 
+         contains("co2_mv")) %>% 
   pivot_longer(cols = -c(contains("datetime"))) %>% 
-  mutate(tank = str_to_sentence(str_remove_all(name, "co2_ppm_"))) %>% 
-  rename("co2_ppm" = value) %>% 
+  #mutate(tank = str_to_sentence(str_remove_all(name, "co2_ppm_"))) %>% 
+  mutate(tank = str_to_sentence(str_remove_all(name, "co2_mv_"))) %>% 
+  #rename("co2_ppm" = value) %>% 
+  rename("co2_mv" = value) %>% 
   select(-name)
 
-df <- left_join(exo_trim, 
-                csense_formatted, 
-                by = c("datetime", "tank"))
-  
+df1 <- full_join(exo_trim, csense_formatted, by = c("datetime", "tank")) %>% 
+  mutate(datetime = as.character(datetime))
 
-ggplot(df, aes(p_h1, co2_ppm, color = tank)) + 
-  geom_point()
+write_csv(df1, "../data/240207_timeseries_raw.csv")
 ```
 
+```{r}
+ggplot(df1, aes(do_perc, co2_mv, color = tank)) + 
+  geom_point()
+```
 
 
