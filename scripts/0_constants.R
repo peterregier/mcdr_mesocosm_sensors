@@ -11,6 +11,8 @@ p_load(tidyverse, # keep things tidy
        cowplot,
        readxl,
        seacarb,
+       ggpmisc, 
+       ggpubr,
        lubridate) # tidy datetime handling
 
 ## Set the temporal bin-rate for both datasets

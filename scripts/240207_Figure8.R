@@ -86,10 +86,10 @@ make_plot <- function(var, y_label){
 }
 
 plot_grid(make_plot(temp_c, "Temp. (C)"), 
-          make_plot(p_h2, "pH"), 
+          make_plot(p_h2, "pH (NBS)"), 
           make_plot(do_mgl, "DO (mg/L)"), 
           make_plot(co2_ppm_calc, "CO2 (ppm)"), 
-          make_plot(alk_mol_kg, "Alk (mol/kg)"), 
+          make_plot(alk_umol_kg, "Alk (umol/kg)"), 
           ncol = 1)
 ggsave("figures/240207_Fig8_v1.png", width = 8, height = 12)
 

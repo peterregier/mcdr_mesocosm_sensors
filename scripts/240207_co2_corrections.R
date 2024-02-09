@@ -20,6 +20,7 @@
 ## 5. Export corrected CO2 for Fig 8
 
 # 1. Setup ---------------------------------------------------------------------
+
 source("scripts/0_constants.R")
 
 csense <- read_csv("data/240207_timeseries_raw.csv")
@@ -84,13 +85,13 @@ ggplot(df1_07_08 %>% filter(datetime > "2023-08-01") %>%
   geom_point(aes(size = tod), alpha = 0.8) + 
   geom_smooth(method = "lm", aes(color = tank), show.legend = F) + 
   facet_wrap(~tank, nrow = 1, scales = "free") + 
+  #stat_poly_eq() +
+  ggpubr::stat_cor(aes(label = after_stat(rr.label)), geom = "text") +
   labs(x = "Grab-sample CO2 (ppm)", 
        y = "Sensor CO2 (mV)", 
        size = "Hour \n of day") + 
   scale_color_manual(values=c("royalblue","forestgreen"))
 ggsave("figures/240207_Fig4_v1.png", width = 7, height = 3)
-
-
 
 #bare = SEVoltage_1, serial number: 24100179
 #intercept from turner calibration: (co2 cal gas ppm, sensor output V) = (0, 0.018)
