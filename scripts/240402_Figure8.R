@@ -28,6 +28,18 @@ seacarb_output <- carb(flag = 21,
   as_tibble() %>% 
   clean_names()
 
+seacarb_errors <- errors(flag = 21, 
+                       var1 = df$co2_ppm_calc, 
+                       var2 = df$p_h2, 
+                       T = df$temp_c, 
+                       S = df$sal_psu) %>% 
+  mutate(datetime = df$datetime, 
+         dic_mol_L = DIC * 1.025) %>% # convert kg to L (1.025 kg/L for seawater)
+  as_tibble() %>% 
+  clean_names()
+
+alk_variability = mean(seacarb_errors$alk) * 1000000 ## Convert to umol/kg
+
 ## This might be right? Not sure. But: 
 # (mol CaCO3/kg seawater) * (~100g CaCO3 / 1 mol CaCO3) * 
 # (1000 mg / g) * (1.03 kg / L seawater)
@@ -73,14 +85,14 @@ make_plot <- function(var, resolution, y_label){
   p2 <- df_combined %>%
     mutate(tod = hour(datetime)) %>%
     group_by(tank, tod) %>%
-    summarize(sd = sd({{var}}, na.rm = T),
-              #max = max({{var}}, na.rm = T),
+    summarize(min = min({{var}}, na.rm = T),
+              max = max({{var}}, na.rm = T),
               mean = mean({{var}}, na.rm = T)) %>%
     ggplot(aes(tod, mean, color = tank)) +
     geom_ribbon(aes(ymin = mean - resolution, ymax = mean + resolution, fill = tank), 
                 color = NA, alpha = alpha_level, show.legend = F) + 
-    geom_errorbar(aes(ymin = mean - sd, 
-                      ymax = mean + sd), 
+    geom_errorbar(aes(ymin = min, 
+                      ymax = max), 
                   alpha = 0.5) + 
     geom_point() + 
     labs(x = "Time of day", 
@@ -96,9 +108,9 @@ plot_grid(make_plot(temp_c, 0.2, "Temp. (C)"), #Accuracy is 0.2 C per EXO manual
           make_plot(p_h2, 0.2, "pH (NBS)"), #Accuracy is 0.2 units per EXO manual
           make_plot(do_mgl, 0.1, "DO (mg/L)"), #Accuracy is 0.1 mg/L per EXO manual
           make_plot(co2_ppm_calc, 0.03*2000, "CO2 (ppm)"), #Based on accuracy of 3% of full scale
-          make_plot(alk_umol_kg, 0.1, "Alk (umol/kg)"), 
+          make_plot(alk_umol_kg, alk_variability, "Alk (umol/kg)"), 
           ncol = 1)
-ggsave("figures/240207_Fig8_v1.png", width = 10, height = 12)
+ggsave("figures/240207_Fig8_v1.png", width = 8, height = 12)
 
 
 
