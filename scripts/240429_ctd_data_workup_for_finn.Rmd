@@ -1,0 +1,129 @@
+---
+title: "CTD data workup"
+author: "PR"
+date: "2024-04-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F,
+                      message = F, 
+                      warning = F)
+```
+
+### TASK
+
+Examine and clean up CTD dataset from Finn (see email 4/28/24).
+
+
+## IMPORTANT CAVEATS
+
+I don't know where these data came, any potential maintenance or other events impacted data, from or what the end-goal is, so I'm going to use general discretion and clean anything that appears "wrong" so **use with many grains of salt**. I'm also not double-checking any unit conversions (ie just looking at patterns, not absolute values)
+
+
+### Initial viz {.tabset}
+
+```{r}
+
+require(pacman)
+p_load(tidyverse, 
+       parsedate, 
+       janitor)
+
+common_tz = "Etc/GMT+7"
+
+theme_set(theme_bw())
+
+## This is local, obs change to the file directory if trying to run on your computer
+data_path = "/Users/regi350/Downloads/"
+
+df_raw <- read_csv(paste0(data_path, "CTD_corrected.csv")) %>% 
+  dplyr::select(-1) %>% 
+  mutate(datetime = force_tz(parsedate::parse_date(time_pdt), tzone = common_tz))
+
+df_raw
+
+```
+
+#### Temp
+
+```{r}
+
+maintenance_datetimes = force_tz(parsedate::parse_date(c("2023/09/11 13:00", 
+                                                         "2023/08/24 11:00", 
+                                                         "2023/06/16 9:00", 
+                                                         "2023/05/19 9:00")), 
+                                 tzone = common_tz)
+
+visualize_data <- function(var){
+  ggplot(df_raw, aes(datetime, {{var}})) + 
+    geom_line() + 
+    geom_vline(xintercept = maintenance_datetimes, 
+               color = "red", width = 2, alpha = 0.4)
+}
+
+visualize_data(temp_deg_c)
+```
+
+#### Depth
+
+```{r}
+visualize_data(depth_m)
+```
+
+
+#### Salinity
+
+```{r}
+visualize_data(salinity_ppt)
+```
+
+
+#### DO
+
+```{r}
+visualize_data(do_mg_l)
+```
+
+
+### Initial thoughts
+
+Temperature all appears to be reasonable, though marking maintenance will help us understand, depth appears to just be deployment depth, not a sensor measurement, salinity has a couple very low (and isolated) values we can remove, though it would be good to validate they're associated with maintenance. DO is sus prior to being scrubbed... are bay values really that low??
+
+
+
+### QC
+
+Keeping it simple, let's remove and gap-fill all salinity values < 30 PPT, flag em and call it a day
+
+
+### Cleaned (flagged then gapfilled) salinity
+```{r}
+
+sal_threshold = 26 # based on visual ID
+
+df_qc <- df_raw %>% 
+  mutate(flag_sal = ifelse(salinity_ppt > sal_threshold, "ok", "flagged")) %>% 
+  mutate(salinity_ppt = ifelse(flag_sal == "ok", salinity_ppt, NA)) %>%
+  tidyr::fill(salinity_ppt)
+
+  ggplot(df_qc, aes(datetime, salinity_ppt)) + 
+    geom_line() + 
+    geom_vline(xintercept = maintenance_datetimes, 
+               color = "red", width = 2, alpha = 0.4)
+  
+df_final <- df_qc %>% 
+  mutate(datetime = as.character(datetime))
+```
+
+
+```{r}
+write_csv(df_final, paste0(data_path, "CTD_corrected_pr_240429.csv"))
+```
+
+
+
+
+
+
+
