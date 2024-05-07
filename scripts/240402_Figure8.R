@@ -170,7 +170,7 @@ alk_comparison <- bind_rows(carb(flag = 21,
             as_tibble() %>% 
             clean_names() %>% 
             mutate(alk_umol_kg = alk * 1000000, 
-                   label = "alk_umol_kg") %>% 
+                   label = "base") %>% 
             dplyr::select(datetime, label, alk_umol_kg, tank), 
           carb(flag = 21, 
                var1 = df$co2_ppm_calc - 60, 
@@ -182,7 +182,7 @@ alk_comparison <- bind_rows(carb(flag = 21,
             as_tibble() %>% 
             clean_names() %>% 
             mutate(alk_umol_kg = alk * 1000000, 
-                   label = "alk_min") %>% 
+                   label = "lowend") %>% 
             dplyr::select(datetime, label, alk_umol_kg, tank), 
           carb(flag = 21, 
                var1 = df$co2_ppm_calc + 60, 
@@ -194,7 +194,7 @@ alk_comparison <- bind_rows(carb(flag = 21,
             as_tibble() %>% 
             clean_names() %>% 
             mutate(alk_umol_kg = alk * 1000000, 
-                   label = "alk_max") %>% 
+                   label = "highend") %>% 
             dplyr::select(datetime, label, alk_umol_kg, tank))
           
 
@@ -202,56 +202,8 @@ ggplot(alk_comparison, aes(datetime, alk_umol_kg, color = label)) +
   geom_line() + 
   facet_wrap(~tank)
 
-
-
-alk_wide <- alk_comparison %>% 
+alk_comparison %>% 
   pivot_wider(names_from = "label", values_from = "alk_umol_kg") %>% 
   unnest()
-
-rect_start <- as_datetime("2023-08-07 10:00:00")
-y_min = min(alk_wide %>% drop_na() %>% pull(alk_min))
-y_max = max(alk_wide %>% drop_na() %>% pull(alk_max))
-alpha_level = 0.4
-
-p1 <- ggplot(alk_wide, aes(datetime, alk_umol_kg, color = tank)) + 
-  geom_ribbon(aes(ymin = alk_min, ymax = alk_max, fill = tank), 
-              color = NA, alpha = alpha_level, show.legend = F) + 
-  geom_line(show.legend = F) + 
-  annotate(geom = "rect", 
-           xmin = rect_start,
-           xmax = as_datetime("2023-08-07 20:00:00"), 
-           ymin = y_min, 
-           ymax = y_max, 
-           alpha = 0.2) + 
-  annotate(geom = "text", 
-           x = rect_start + hours(36), 
-           y = y_max, 
-           label = "Maintenance", 
-           size = 2) + 
-  labs(x = "", y = "Alkalinity (umol/kg)") + 
-  scale_color_manual(values=c("royalblue","forestgreen")) + 
-  scale_fill_manual(values=c("royalblue","forestgreen"))
-
-p2 <- alk_wide %>%
-  mutate(tod = hour(datetime)) %>%
-  group_by(tank, tod) %>%
-  summarize(min = mean(alk_min, na.rm = T),
-            max = mean(alk_max, na.rm = T),
-            mean = mean(alk_umol_kg, na.rm = T)) %>%
-  ggplot(aes(tod, mean, color = tank)) +
-  geom_ribbon(aes(ymin = min, ymax = max, fill = tank), 
-              color = NA, alpha = alpha_level, show.legend = F) + 
-  geom_errorbar(aes(ymin = min, 
-                    ymax = max), 
-                alpha = 0.5) + 
-  geom_point() + 
-  labs(x = "Time of day", 
-       y = "Alkalinity (umol/kg)", 
-       color = "") + 
-  scale_color_manual(values=c("royalblue","forestgreen")) + 
-  scale_fill_manual(values=c("royalblue","forestgreen"))
-
-plot_grid(p1, p2, nrow = 1, rel_widths = c(1, 0.7))
-ggsave("figures/240404_alkalinity_w_calculated_resolution.png", width = 8, height = 3)
 
 
