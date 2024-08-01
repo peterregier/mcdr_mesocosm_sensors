@@ -10,6 +10,7 @@ p_load(tidyverse, # keep things tidy
        plotly,
        cowplot,
        readxl,
+       seacarb,
        lubridate) # tidy datetime handling
 
 ## Set the temporal bin-rate for both datasets

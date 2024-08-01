@@ -137,7 +137,7 @@ calc_daily_stats(p_h2) %>%
             max = max(max)) %>% 
   mutate(max - min)
 
-
+4786 - 3072
 
 
 
