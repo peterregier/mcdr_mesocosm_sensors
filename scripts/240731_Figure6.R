@@ -20,11 +20,13 @@ df <- read_csv("data/240207_timeseries_corrected.csv") %>%
   filter(datetime > plot_start & 
            datetime < plot_end) %>% 
   drop_na() %>% 
-  filter(datetime > as_datetime("2023-08-08 00:00:00"))
+  filter(datetime > as_datetime("2023-08-08 00:00:00")) %>% 
+  mutate(ph_total = p_h2 - 0.13)
+
 
 seacarb_output <- carb(flag = 21, 
                        var1 = df$co2_ppm_calc, 
-                       var2 = df$p_h2, 
+                       var2 = df$ph_total, 
                        T = df$temp_c, 
                        S = df$sal_psu) %>% 
   mutate(datetime = df$datetime, 
@@ -34,7 +36,7 @@ seacarb_output <- carb(flag = 21,
 
 seacarb_errors <- errors(flag = 21, 
                        var1 = df$co2_ppm_calc, 
-                       var2 = df$p_h2, 
+                       var2 = df$ph_total, 
                        T = df$temp_c, 
                        S = df$sal_psu) %>% 
   mutate(datetime = df$datetime, 
@@ -108,13 +110,34 @@ make_plot <- function(var, resolution, y_label){
 }
 
 plot_grid(#make_plot(temp_c, 0.2, "Temp. (C)"), #Accuracy is 0.2 C per EXO manual
-  make_plot(p_h2, 0.2, "pH (NBS)"), #Accuracy is 0.2 units per EXO manual
+  make_plot(ph_total, 0.2, "pH (total)"), #Accuracy is 0.2 units per EXO manual
   #make_plot(do_mgl, 0.1, "DO (mg/L)"), #Accuracy is 0.1 mg/L per EXO manual
-  make_plot(co2_ppm_calc, 0.03*2000, "CO2 (ppm)"), #Based on accuracy of 3% of full scale
+  make_plot(co2_ppm_calc, 0.03*2000, "pCO2 (ppm)"), #Based on accuracy of 3% of full scale
   make_plot(alk_umol_kg, alk_variability, "Alk (umol/kg)"), 
   make_plot(dic_umol_kg, dic_variability, "DIC (umol/kg)"), 
   make_plot(omega_aragonite, omega_variability, "Ω Aragonite"),
+  labels = c("A", "B", "C", "D", "E"),
   ncol = 1)
 #ggsave("figures/240731_fig6_v2_no_errorbars.png", width = 8, height = 12)
-ggsave("figures/240731_fig6_v2_errorbars.png", width = 8, height = 12)
+ggsave("figures/240731_fig6_v2_errorbars.png", width = 9, height = 11)
+
+
+# Stats
+calc_daily_stats <- function(var){
+  df_combined %>%
+    mutate(tod = hour(datetime)) %>%
+    group_by(tank, tod) %>%
+    summarize(min = min({{var}}, na.rm = T),
+              max = max({{var}}, na.rm = T),
+              mean = mean({{var}}, na.rm = T))
+}
+
+calc_daily_stats(p_h2) %>%
+  summarize(min = min(min), 
+            max = max(max)) %>% 
+  mutate(max - min)
+
+
+
+
 
