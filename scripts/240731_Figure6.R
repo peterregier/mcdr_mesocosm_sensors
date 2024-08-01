@@ -118,5 +118,3 @@ plot_grid(#make_plot(temp_c, 0.2, "Temp. (C)"), #Accuracy is 0.2 C per EXO manua
 #ggsave("figures/240731_fig6_v2_no_errorbars.png", width = 8, height = 12)
 ggsave("figures/240731_fig6_v2_errorbars.png", width = 8, height = 12)
 
-
-
