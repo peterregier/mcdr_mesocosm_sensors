@@ -19,14 +19,15 @@ p_load(tidyverse,
 ## Set ggplot theme
 theme_set(theme_bw())
 
-## Ignore this, setting up a toy dataset for you
-# df <- read_csv("data/240207_timeseries_corrected.csv") %>% 
-#   drop_na() %>% 
-#   filter(tank == "Eelgrass") %>% 
-#   filter(datetime > as_datetime("2023-08-14 00:00:00")) %>% 
-#   filter(datetime < as_datetime("2023-08-18 00:00:00")) %>% 
-#   rename("ph" = p_h2) %>% 
-#   dplyr::select(datetime, temp_c, sal_psu, ph, co2_ppm_calc)
+# Ignore this, setting up a toy dataset for you
+# df <- read_csv("data/240207_timeseries_corrected.csv") %>%
+#   drop_na() %>%
+#   filter(tank == "Eelgrass") %>%
+#   filter(datetime > as_datetime("2023-08-14 00:00:00")) %>%
+#   filter(datetime < as_datetime("2023-08-18 00:00:00")) %>%
+#   rename("ph_nbs" = p_h2) %>%
+#   mutate("ph_total" = ph_nbs - 0.13) %>% 
+#   dplyr::select(datetime, temp_c, sal_psu, ph_total, co2_ppm_calc)
 # 
 # write_csv(df, "data/240801_reyna.csv")
 
@@ -37,7 +38,7 @@ df <- read_csv("data/240801_reyna.csv")
 ## type ?carb into your console to get a description of the carb() function
 seacarb_output <- carb(flag = 21, 
                        var1 = df$co2_ppm_calc, 
-                       var2 = df$ph, 
+                       var2 = df$ph_total, 
                        T = df$temp_c, 
                        S = df$sal_psu) %>% 
   mutate(datetime = df$datetime) %>% 
@@ -56,13 +57,13 @@ make_plots <- function(var){
 }
 
 ## Look at seacarb calculations
-plot_grid(make_plots(ph), 
+plot_grid(make_plots(ph_total), 
           make_plots(co2_ppm_calc),
           make_plots(alk_umol_kg),
           make_plots(dic_umol_kg),
           make_plots(omega_aragonite), 
           ncol = 1)
-
+ggsave("figures/reyna_seacarb.png", width = 6, height = 12)
 
 
 
