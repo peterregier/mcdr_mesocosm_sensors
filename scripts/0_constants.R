@@ -10,9 +10,6 @@ p_load(tidyverse, # keep things tidy
        plotly,
        cowplot,
        readxl,
-       seacarb,
-       ggpmisc, 
-       ggpubr,
        lubridate) # tidy datetime handling
 
 ## Set the temporal bin-rate for both datasets
@@ -58,7 +55,7 @@ read_exo <- function(path) {
     mutate(datetime_raw = as.character(datetime_raw)) %>% 
     rename("do_mgl" = "odo_mg_l", 
            "do_perc" = odo_percent_local) %>% 
-    mutate(across(contains("p_h"), as.numeric)) %>% 
+    mutate(across(contains("p_h"), ~ as.numeric(.))) %>% 
     select(datetime, datetime_raw, temp_c, depth_m, sal_psu, do_perc, do_mgl, contains("p_h"), battery_v, wiper_position_volt, path) %>% 
     select(-contains("_m_v"))
 }
