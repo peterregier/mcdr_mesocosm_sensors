@@ -40,9 +40,18 @@ seacarb_errors <- errors(flag = 21,
                        T = df$temp_c, 
                        S = df$sal_psu) %>% 
   mutate(datetime = df$datetime, 
+         tank = df$tank,
          dic_mol_L = DIC * 1.025) %>% # convert kg to L (1.025 kg/L for seawater)
   as_tibble() %>% 
   clean_names()
+
+# by tank
+seacarb_errors %>% 
+  group_by(tank) %>% 
+  summarize(alk = mean(alk)* 1e6, 
+            dic = mean(dic)* 1e6, 
+            omega_aragonite = mean(omega_aragonite))
+
 
 alk_variability = mean(seacarb_errors$alk) * 1e6 ## Convert to umol/kg
 dic_variability = mean(seacarb_errors$dic) * 1e6 ## Convert to umol/kg
@@ -120,6 +129,19 @@ plot_grid(#make_plot(temp_c, 0.2, "Temp. (C)"), #Accuracy is 0.2 C per EXO manua
   ncol = 1)
 #ggsave("figures/240731_fig6_v2_no_errorbars.png", width = 8, height = 12)
 ggsave("figures/240731_fig6_v2_errorbars.png", width = 9, height = 11)
+
+
+df_combined %>%
+  mutate(tod = hour(datetime)) %>%
+  group_by(tank, tod) %>%
+  summarize(alk = mean(alk_umol_kg), 
+            dic = mean(dic_umol_kg)) %>% 
+  ungroup() %>% 
+  group_by(tank) %>% 
+  summarize(alk = range(alk), 
+            dic = range(dic))
+
+
 
 write_csv(df_combined, "data/241019_figure6_data.csv")
 

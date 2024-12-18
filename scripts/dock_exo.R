@@ -232,7 +232,7 @@ exoph_eel <- exodata %>%
   summarize(mean = mean(ph_eel, na.rm = T), 
             sd = sd(ph_eel, na.rm = T))
 
-ph_avg <- ggplot(data = exoph_bare, aes(time,mean, color = "Bare")) + 
+ph_avg <- ggplot(data = exoph_bare, aes(time, mean, color = "Bare")) + 
   geom_smooth(data = exoph_eel, aes(time, mean, color = "Eelgrass")) + 
   geom_errorbar(data = exoph_bare, aes(ymin = mean - sd, ymax = mean + sd, color = "Bare"), alpha = 0.2) +
   geom_errorbar(data = exoph_eel, aes(ymin = mean - sd, ymax = mean + sd, color = "Eelgrass"), alpha = 0.2) +

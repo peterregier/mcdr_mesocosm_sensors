@@ -9,8 +9,13 @@ p_load(tidyverse,
        WaveletComp,
        hms,
        viridis,
+       tictoc,
+       cowplot,
        scales)
 
+theme_set(theme_bw())
+
+tic("run script")
 
 ## ADD SOME WAVELET ANALYSIS FOR CO2 DATA FROM 7/11 TO 7/25!!! 
 
@@ -29,11 +34,11 @@ view(CTD)
 
 #read in the dock data and convert to pdt 
 #tide <- read_delim("data/TideGauge_20230601.csv")  %>%
-  #clean_names()
+#clean_names()
 #tide <- tide %>% mutate(time = as.POSIXct(time, tz = "GMT", tryFormats = c("%m/%d/%Y %H:%M:%OS",
-                                                                                 #"%m/%d/%z %H:%M",
-                                                                                 #"%m/%d/%Y %H:%M",
-                                                                                 #"%m-%d-%z %H:%M")))
+#"%m/%d/%z %H:%M",
+#"%m/%d/%Y %H:%M",
+#"%m-%d-%z %H:%M")))
 
 #tide <- tide %>% mutate(time = as.POSIXct(time, format = "%Y/%m/%d %H:%M:%S"))
 #tide <- tide %>% mutate(time = with_tz(time, tz = "America/Los_Angeles"))
@@ -83,8 +88,8 @@ csense <- csense %>% mutate("date" = as.Date(trunc(datetime_pdt, 'days'))) %>% r
 all <- merge(exodata, CTD, by = c("datetime", "date"))
 exodata <- exodata %>% select(date, datetime, temp_c_Bare, temp_c_Eelgrass, sal_psu_Bare, sal_psu_Eelgrass, do_mgl_Bare, do_mgl_Eelgrass)  %>%  drop_na()
 CTD <- CTD %>% select(date, datetime, temp_deg_c, do_mg_l, salinity_ppt) %>%  drop_na() %>% mutate(temp_deg_c = as.numeric(temp_deg_c),
-                                                                                                                             salinity_ppt = as.numeric(salinity_ppt),
-                                                                                                                             do_mg_l = as.numeric(do_mg_l))
+                                                                                                   salinity_ppt = as.numeric(salinity_ppt),
+                                                                                                   do_mg_l = as.numeric(do_mg_l))
 all <- all %>% select(date, datetime, temp_c_Bare, temp_c_Eelgrass, sal_psu_Bare, sal_psu_Eelgrass, do_mgl_Bare, do_mgl_Eelgrass,
                       temp_deg_c, do_mg_l, salinity_ppt) %>% drop_na()
 
@@ -126,9 +131,9 @@ do_eel <- wc_analysis(exodata,start1,end1,"do_mgl_Eelgrass")
 do_bare <- wc_analysis(exodata,start1,end1,"do_mgl_Bare")
 do_CTD <-  wc_analysis(CTD,start1,end1,"do_mg_l")
 
-sal_eel <- wc_analysis(exodata,start1,end1,"sal_psu_Eelgrass")
-sal_bare <- wc_analysis(exodata,start1,end1,"sal_psu_Bare")
-sal_CTD <-  wc_analysis(CTD,start1,end1,"salinity_ppt")
+# sal_eel <- wc_analysis(exodata,start1,end1,"sal_psu_Eelgrass")
+# sal_bare <- wc_analysis(exodata,start1,end1,"sal_psu_Bare")
+# sal_CTD <-  wc_analysis(CTD,start1,end1,"salinity_ppt")
 
 df_temp_eel <- wc_to_df(temp_eel,datelist_exo)
 df_temp_bare <- wc_to_df(temp_bare,datelist_exo)
@@ -138,102 +143,148 @@ df_do_eel <- wc_to_df(do_eel,datelist_exo)
 df_do_bare <- wc_to_df(do_bare,datelist_exo)
 df_do_CTD <- wc_to_df(do_CTD,datelist_CTD)
 
-df_sal_eel <- wc_to_df(sal_eel,datelist_exo)
-df_sal_bare <- wc_to_df(sal_bare,datelist_exo)
-df_sal_CTD <- wc_to_df(sal_CTD,datelist_CTD)
+# df_sal_eel <- wc_to_df(sal_eel,datelist_exo)
+# df_sal_bare <- wc_to_df(sal_bare,datelist_exo)
+# df_sal_CTD <- wc_to_df(sal_CTD,datelist_CTD)
 
 
 #Now, make wavelets
 viridis_code <- "D"
-n=20
+n=10
 
-p_temp_eel <- ggplot(df_temp_eel,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
+# df_temp_eel: 20.2
+# df_temp_CTD: 48
+# df_temp_bare: 23.3
+#max_power_temp = max(df_temp_CTD$power, na.rm = T)
+
+temp_wavelets <- bind_rows(as_tibble(df_temp_eel %>% mutate(source = "Eelgrass")), 
+          as_tibble(df_temp_CTD %>% mutate(source = "Dock")), 
+          as_tibble(df_temp_bare %>% mutate(source = "Bare"))) %>% 
+  ggplot(aes(x = datetime, y = period, z = power)) + 
+  geom_contour_filled(bins=n,show.legend=T) + 
+  facet_wrap(~source, nrow = 1) + 
+  scale_fill_viridis_d(option=viridis_code, begin=0.01) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date", title = "Eelgrass tank temperature") + 
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + 
+  labs(x="Date", title = "Temperature", fill = "Power") + 
   theme(plot.title = element_text(hjust = 0.5), axis.title.y=element_blank()) 
-p_temp_eel
-ggsave("wavelet_temp_eel.png", width = 5, height = 5)
+ggsave("figures/241211_temp_wavelets.png", width = 12, height = 4)
 
-p_temp_CTD <- ggplot(df_temp_CTD,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
-  scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock temperature") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
-p_temp_CTD
-ggsave("wavelet_temp_CTD.png", width = 5, height = 5)
-
-p_temp_bare <- ggplot(df_temp_bare,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
+do_wavelets <- bind_rows(as_tibble(df_do_eel %>% mutate(source = "Eelgrass")), 
+          as_tibble(df_do_CTD %>% mutate(source = "Dock")), 
+          as_tibble(df_do_bare %>% mutate(source = "Bare"))) %>% 
+  ggplot(aes(x = datetime, y = period, z = power)) + 
+  geom_contour_filled(bins=n,show.legend=T) + 
+  facet_wrap(~source, nrow = 1) + 
+  scale_fill_viridis_d(option=viridis_code, begin=0.01) +
   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",title = "Bare tank temperature") + 
-  theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
-p_temp_bare
-ggsave("wavelet_temp_bare.png", width = 5, height = 5)
+  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + 
+  labs(x="Date", title = "Dissolved oxygen", fill = "Power") + 
+  theme(plot.title = element_text(hjust = 0.5), axis.title.y=element_blank()) 
+ggsave("figures/241211_do_wavelets.png", width = 12, height = 4)
 
-p_do_eel <- ggplot(df_do_eel,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
-  scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",title = "Eelgrass tank DO") + 
-  theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
-p_do_eel
-ggsave("wavelet_do_eel.png", width = 5, height = 5)
+toc()
 
-p_do_CTD <- ggplot(df_do_CTD,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
-  scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock DO") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
-p_do_CTD
-ggsave("wavelet_do_CTD.png", width = 5, height = 5)
-
-p_do_bare <- ggplot(df_do_bare,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
-  scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date", title = "Bare tank DO") + 
-  theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
-p_do_bare
-ggsave("wavelet_do_bare.png", width = 5, height = 5)
-
-all_wavelet <- grid.arrange(p_temp_CTD, p_temp_bare, p_temp_eel, p_do_CTD, p_do_bare, p_do_eel, nrow = 2)
-ggsave("all_wavelet.png", all_wavelet, width = 15, height = 10)
-
-p_sal_CTD <- ggplot(df_sal_CTD,aes(x=datetime,y=period,z=power)) + 
-  geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
-  scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
-  scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock salinity") + 
-  theme(plot.title = element_text(hjust = 0.5)) 
-p_sal_CTD
-ggsave("wavelet_sal_CTD.png", width = 5, height = 5)
-
-#old wavelet analysis and visualization code 
-co2_bare <- analyze.wavelet(my.data = csense,  my.series = "co2_ppm_bare", dt = 1/12)
-co2_eel <- analyze.wavelet(my.data = csense,  my.series = "co2_ppm_eelgrass", dt = 1/12)
-wt.image(co2_bare)
-wt.image(co2_eel)
-CTD_temp <- analyze.wavelet(my.data = CTD,  my.series = "temp_deg_c", dt = 1/12)
-CTD_sal <- analyze.wavelet(my.data = CTD,  my.series = "salinity_ppt", dt = 1/12)
-CTD_do <- analyze.wavelet(my.data = CTD,  my.series = "do_mg_l", dt = 1/12)
-CTD_tide <- analyze.wavelet(my.data = CTD,  my.series = "water_level", dt = 1/12)
-wt.image(CTD_temp)
-wt.image(CTD_sal)
-wt.image(CTD_do)
-wt.image(CTD_tide)
-exo_temp_eel <- analyze.wavelet(my.data = exodata,  my.series = "temp_c_Eelgrass", dt = 1/12)
-exo_sal_eel <- analyze.wavelet(my.data = exodata,  my.series = "sal_psu_Eelgrass", dt = 1/12)
-exo_do_eel <- analyze.wavelet(my.data = exodata,  my.series = "do_mgl_Eelgrass", dt = 1/12)
-wt.image(exo_temp_eel)
-wt.image(exo_sal_eel)
-wt.image(exo_do_eel)
-exo_temp_bare <- analyze.wavelet(my.data = exodata,  my.series = "temp_c_Bare", dt = 1/12)
-exo_sal_bare <- analyze.wavelet(my.data = exodata,  my.series = "sal_psu_Bare", dt = 1/12)
-exo_do_bare <- analyze.wavelet(my.data = exodata,  my.series = "do_mgl_Bare", dt = 1/12)
-wt.image(exo_temp_bare)
-wt.image(exo_sal_bare)
-wt.image(exo_do_bare)
-do_eel <- analyze.coherency(my.data = as.data.frame(all), my.pair = c("do_mg_l", "do_mgl_Eelgrass"), dt = 1/12)
-wc.image(do_eel)
-sal_eel <- analyze.coherency(my.data = as.data.frame(all), my.pair = c("salinity_ppt", "sal_psu_Eelgrass"), dt = 1/12)
-wc.image(sal_eel)
-temp_eel <- analyze.coherency(my.data = as.data.frame(all), my.pair = c("temp_deg_c", "temp_c_Eelgrass"), dt = 1/12)
-wc.image(temp_eel)
+plot_grid(temp_wavelets, do_wavelets, 
+          ncol = 1, 
+          labels = c("a", "b"))
+ggsave("figures/241211_wavelets.png", width = 12, height = 8)
+# 
+# 
+# 
+# p_temp_eel <- ggplot(df_temp_eel,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=T) + 
+#   scale_fill_viridis_d(option=viridis_code, begin=0.01) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + 
+#   labs(x="Date", title = "Eelgrass tank temperature") + 
+#   theme(plot.title = element_text(hjust = 0.5), axis.title.y=element_blank()) 
+# p_temp_eel
+# #ggsave("wavelet_temp_eel.png", width = 5, height = 5)
+# 
+# p_temp_CTD <- ggplot(df_temp_CTD,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock temperature") + 
+#   theme(plot.title = element_text(hjust = 0.5)) 
+# p_temp_CTD
+# ggsave("wavelet_temp_CTD.png", width = 5, height = 5)
+# 
+# p_temp_bare <- ggplot(df_temp_bare,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",title = "Bare tank temperature") + 
+#   theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
+# p_temp_bare
+# ggsave("wavelet_temp_bare.png", width = 5, height = 5)
+# 
+# p_do_eel <- ggplot(df_do_eel,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",title = "Eelgrass tank DO") + 
+#   theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
+# p_do_eel
+# ggsave("wavelet_do_eel.png", width = 5, height = 5)
+# 
+# p_do_CTD <- ggplot(df_do_CTD,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock DO") + 
+#   theme(plot.title = element_text(hjust = 0.5)) 
+# p_do_CTD
+# ggsave("wavelet_do_CTD.png", width = 5, height = 5)
+# 
+# p_do_bare <- ggplot(df_do_bare,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10",expand = c(-0.05,0), limits = c(5,91)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date", title = "Bare tank DO") + 
+#   theme(plot.title = element_text(hjust = 0.5),  axis.title.y=element_blank()) 
+# p_do_bare
+# 
+# 
+# 
+# 
+# ggsave("wavelet_do_bare.png", width = 5, height = 5)
+# 
+# all_wavelet <- grid.arrange(p_temp_CTD, p_temp_bare, p_temp_eel, p_do_CTD, p_do_bare, p_do_eel, nrow = 2)
+# ggsave("all_wavelet.png", all_wavelet, width = 15, height = 10)
+# 
+# p_sal_CTD <- ggplot(df_sal_CTD,aes(x=datetime,y=period,z=power)) + 
+#   geom_contour_filled(bins=n,show.legend=F) + scale_fill_viridis_d(option=viridis_code,begin=0.01, end = 1) +
+#   scale_y_continuous(breaks=c(12,24),labels=c("tidal","daily"),trans="log10", expand = c(-0.05,0), limits = c(3,70)) + 
+#   scale_x_datetime(expand = c(0,0),date_breaks="10 days",labels=date_format("%b %d")) + labs(x="Date",y="Period", title = "Dock salinity") + 
+#   theme(plot.title = element_text(hjust = 0.5)) 
+# p_sal_CTD
+# ggsave("wavelet_sal_CTD.png", width = 5, height = 5)
+# 
+# #old wavelet analysis and visualization code 
+# co2_bare <- analyze.wavelet(my.data = csense,  my.series = "co2_ppm_bare", dt = 1/12)
+# co2_eel <- analyze.wavelet(my.data = csense,  my.series = "co2_ppm_eelgrass", dt = 1/12)
+# wt.image(co2_bare)
+# wt.image(co2_eel)
+# CTD_temp <- analyze.wavelet(my.data = CTD,  my.series = "temp_deg_c", dt = 1/12)
+# CTD_sal <- analyze.wavelet(my.data = CTD,  my.series = "salinity_ppt", dt = 1/12)
+# CTD_do <- analyze.wavelet(my.data = CTD,  my.series = "do_mg_l", dt = 1/12)
+# CTD_tide <- analyze.wavelet(my.data = CTD,  my.series = "water_level", dt = 1/12)
+# wt.image(CTD_temp)
+# wt.image(CTD_sal)
+# wt.image(CTD_do)
+# wt.image(CTD_tide)
+# exo_temp_eel <- analyze.wavelet(my.data = exodata,  my.series = "temp_c_Eelgrass", dt = 1/12)
+# exo_sal_eel <- analyze.wavelet(my.data = exodata,  my.series = "sal_psu_Eelgrass", dt = 1/12)
+# exo_do_eel <- analyze.wavelet(my.data = exodata,  my.series = "do_mgl_Eelgrass", dt = 1/12)
+# wt.image(exo_temp_eel)
+# wt.image(exo_sal_eel)
+# wt.image(exo_do_eel)
+# exo_temp_bare <- analyze.wavelet(my.data = exodata,  my.series = "temp_c_Bare", dt = 1/12)
+# exo_sal_bare <- analyze.wavelet(my.data = exodata,  my.series = "sal_psu_Bare", dt = 1/12)
+# exo_do_bare <- analyze.wavelet(my.data = exodata,  my.series = "do_mgl_Bare", dt = 1/12)
+# wt.image(exo_temp_bare)
+# wt.image(exo_sal_bare)
+# wt.image(exo_do_bare)
+# do_eel <- analyze.coherency(my.data = as.data.frame(all), my.pair = c("do_mg_l", "do_mgl_Eelgrass"), dt = 1/12)
+# wc.image(do_eel)
+# sal_eel <- analyze.coherency(my.data = as.data.frame(all), my.pair = c("salinity_ppt", "sal_psu_Eelgrass"), dt = 1/12)
+# wc.image(sal_eel)
+# temp_eel <- analyze.coherency(my.data = as.data.frame(all), my.pair = c("temp_deg_c", "temp_c_Eelgrass"), dt = 1/12)
+# wc.image(temp_eel)
